@@ -73,12 +73,21 @@ button {
 
 .rail-brand {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 8px;
 	color: #f2f2f3;
 	font-family: var(--font-heading);
 	font-weight: 600;
 	font-size: 15px;
+	white-space: nowrap;
+}
+
+.rail-tagline {
+	font-family: var(--font-mono);
+	font-size: 9px;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: rgba(242, 242, 243, 0.55);
 	white-space: nowrap;
 }
 
@@ -138,6 +147,10 @@ button {
 	width: 32px;
 	height: 1px;
 	background: rgba(242, 242, 243, 0.28);
+}
+
+.rail.expanded .rail-divider {
+	width: 100%;
 }
 
 .rail-group,
@@ -798,7 +811,7 @@ button {
 
 .auth-brand {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 10px;
 	margin-bottom: 8px;
 }

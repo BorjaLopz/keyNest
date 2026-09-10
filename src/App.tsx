@@ -77,7 +77,7 @@ export function App() {
 
 					<div className="auth-brand">
 						<img src="/brand/keynest-monogram.svg" alt="" height={30} />
-						<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={22} />
+						<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={39} />
 					</div>
 
 					<div className="field">
@@ -119,7 +119,7 @@ export function App() {
 
 				<div className="auth-brand">
 					<img src="/brand/keynest-monogram.svg" alt="" height={30} />
-					<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={22} />
+					<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={39} />
 				</div>
 
 				<div className="field">
