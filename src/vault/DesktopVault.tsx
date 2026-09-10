@@ -215,11 +215,23 @@ export function DesktopVault({
 								onChange={(e) => onQueryChange(e.target.value)}
 							/>
 						</div>
-						<button type="button" className="btn btn-secondary btn-icon" title="Configurar grupo" onClick={onOpenGroupSettings}>
-							<Settings size={16} strokeWidth={1.5} />
+						<button
+							type="button"
+							className="btn btn-secondary btn-icon"
+							style={{ width: 30, height: 30 }}
+							title="Configurar grupo"
+							onClick={onOpenGroupSettings}
+						>
+							<Settings size={15} strokeWidth={1.5} />
 						</button>
-						<button type="button" className="btn btn-secondary btn-icon" title="Nueva credencial" onClick={onAddCredential}>
-							<Plus size={16} strokeWidth={1.5} />
+						<button
+							type="button"
+							className="btn btn-secondary btn-icon"
+							style={{ width: 30, height: 30 }}
+							title="Nueva credencial"
+							onClick={onAddCredential}
+						>
+							<Plus size={15} strokeWidth={1.5} />
 						</button>
 					</div>
 					<div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>

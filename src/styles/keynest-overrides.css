@@ -80,6 +80,7 @@ button {
 	font-weight: 600;
 	font-size: 15px;
 	white-space: nowrap;
+	justify-content: space-around;
 }
 
 .rail-tagline {
