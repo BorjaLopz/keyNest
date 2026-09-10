@@ -717,6 +717,10 @@ button {
    treats it like a card meant to sit on solid ground already) — over our
    translucent backdrop that reads as a washed, illegible smear. Give it a
    solid ground here instead of touching the vendored stylesheet. */
+.dialog-backdrop {
+	z-index: 100;
+}
+
 .dialog {
 	background: var(--color-bg);
 	max-height: min(600px, 90vh);
