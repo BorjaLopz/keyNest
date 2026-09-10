@@ -140,8 +140,8 @@ export function DesktopVault({
 			<nav className={`rail${railExpanded ? " expanded" : ""}`}>
 				{railExpanded ? (
 					<div className="rail-brand">
-						<img src="/brand/keynest-monogram-inverse.svg" alt="" width={22} height={22} />
-						KeyNest
+						<img src="/brand/keynest-monogram-inverse.svg" alt="" height={20} />
+						<img src="/brand/keynest-wordmark-inverse.svg" alt="KeyNest" height={16} />
 					</div>
 				) : (
 					<img src="/brand/keynest-monogram-inverse.svg" alt="KeyNest" width={26} height={26} />
