@@ -1,5 +1,5 @@
-import { ChevronRight, Lock, Plus, Search, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { ChevronRight, Eye, EyeOff, Lock, Plus, Search, Settings } from "lucide-react";
+import { useEffect, useState } from "react";
 import { getDomain, getInitials } from "../lib/format";
 import type { VaultViewProps } from "./types";
 
@@ -17,14 +17,29 @@ export function DesktopVault({
 	onSelectCredential,
 	selectedCredential,
 	onCopy,
+	onReveal,
 	copyStatus,
 	onEdit,
 	onDelete,
 	onAddCredential,
 	onAddSubgroup,
-	onInvite,
+	onOpenGroupSettings,
 }: VaultViewProps) {
 	const [newSubgroupName, setNewSubgroupName] = useState("");
+	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
+
+	useEffect(() => {
+		setRevealedPassword(null);
+	}, [selectedCredentialId]);
+
+	async function handleToggleReveal() {
+		if (revealedPassword !== null) {
+			setRevealedPassword(null);
+			return;
+		}
+		if (!selectedCredential) return;
+		setRevealedPassword(await onReveal(selectedCredential));
+	}
 
 	function handleAddSubgroup() {
 		const name = newSubgroupName.trim();
@@ -81,11 +96,9 @@ export function DesktopVault({
 								onChange={(e) => onQueryChange(e.target.value)}
 							/>
 						</div>
-						{selectedGroup?.role === "admin" ? (
-							<button type="button" className="btn btn-secondary btn-icon" title="Invitar" onClick={onInvite}>
-								<UserPlus size={16} strokeWidth={1.5} />
-							</button>
-						) : null}
+						<button type="button" className="btn btn-secondary btn-icon" title="Configurar grupo" onClick={onOpenGroupSettings}>
+							<Settings size={16} strokeWidth={1.5} />
+						</button>
 						<button type="button" className="btn btn-secondary btn-icon" title="Nueva credencial" onClick={onAddCredential}>
 							<Plus size={16} strokeWidth={1.5} />
 						</button>
@@ -177,8 +190,15 @@ export function DesktopVault({
 							<i className="corner bl" />
 							<i className="corner br" />
 							<div className="field-label">Contraseña · cifrada con la clave del grupo</div>
-							<div className="field-value masked">••••••••••••</div>
-							<div className="field-note">Nunca se muestra en pantalla</div>
+							<div className="field-value-row">
+								<div className={`field-value${revealedPassword === null ? " masked" : ""}`}>
+									{revealedPassword ?? "••••••••••••"}
+								</div>
+								<button type="button" className="btn btn-ghost" onClick={handleToggleReveal}>
+									{revealedPassword === null ? <Eye size={14} strokeWidth={1.5} /> : <EyeOff size={14} strokeWidth={1.5} />}
+								</button>
+							</div>
+							{revealedPassword === null ? <div className="field-note">Nunca se muestra sin pedirlo</div> : null}
 						</div>
 					</div>
 

@@ -1,5 +1,5 @@
-import { ArrowLeft, Copy, Lock, Plus, Search, UserPlus } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Copy, Eye, EyeOff, Lock, Plus, Search, Settings } from "lucide-react";
+import { useEffect, useState } from "react";
 import { getDomain, getInitials } from "../lib/format";
 import type { VaultViewProps } from "./types";
 
@@ -16,15 +16,30 @@ export function MobileVault({
 	onSelectCredential,
 	selectedCredential,
 	onCopy,
+	onReveal,
 	copyStatus,
 	onEdit,
 	onDelete,
 	onAddCredential,
 	onAddSubgroup,
-	onInvite,
+	onOpenGroupSettings,
 }: VaultViewProps) {
 	const [newSubgroupName, setNewSubgroupName] = useState("");
+	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
 	const credentialCount = sections.reduce((sum, s) => sum + s.rows.length, 0);
+
+	useEffect(() => {
+		setRevealedPassword(null);
+	}, [selectedCredentialId]);
+
+	async function handleToggleReveal() {
+		if (revealedPassword !== null) {
+			setRevealedPassword(null);
+			return;
+		}
+		if (!selectedCredential) return;
+		setRevealedPassword(await onReveal(selectedCredential));
+	}
 
 	if (selectedCredential) {
 		const domain = getDomain(selectedCredential.url);
@@ -63,8 +78,15 @@ export function MobileVault({
 						<i className="corner bl" />
 						<i className="corner br" />
 						<div className="field-label">Contraseña · clave del grupo</div>
-						<div className="field-value masked">••••••••••••</div>
-						<div className="field-note">Se copia sin mostrarse. El portapapeles se limpia en 20 s.</div>
+						<div className="field-value-row">
+							<div className={`field-value${revealedPassword === null ? " masked" : ""}`}>
+								{revealedPassword ?? "••••••••••••"}
+							</div>
+							<button type="button" className="btn btn-ghost" onClick={handleToggleReveal}>
+								{revealedPassword === null ? <Eye size={16} strokeWidth={1.5} /> : <EyeOff size={16} strokeWidth={1.5} />}
+							</button>
+						</div>
+						<div className="field-note">Copiar limpia el portapapeles en 20 s.</div>
 					</div>
 					{selectedCredential.notes ? (
 						<div className="card blueprint field-card">
@@ -130,11 +152,14 @@ export function MobileVault({
 					<button type="button" className="btn btn-secondary" style={{ flex: 1, height: 44 }} onClick={onAddCredential}>
 						<Plus size={16} strokeWidth={1.5} /> Credencial
 					</button>
-					{selectedGroup?.role === "admin" ? (
-						<button type="button" className="btn btn-secondary" style={{ height: 44, width: 44, padding: 0 }} onClick={onInvite}>
-							<UserPlus size={16} strokeWidth={1.5} />
-						</button>
-					) : null}
+					<button
+						type="button"
+						className="btn btn-secondary"
+						style={{ height: 44, width: 44, padding: 0 }}
+						onClick={onOpenGroupSettings}
+					>
+						<Settings size={16} strokeWidth={1.5} />
+					</button>
 				</div>
 				<div style={{ display: "flex", gap: 8, marginTop: 8 }}>
 					<input

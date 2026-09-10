@@ -240,6 +240,35 @@ create policy "credentials_delete_members"
 	using (public.is_group_member(group_id, auth.uid()));
 
 -- ============================================================
+-- group_activity: registro append-only de quien hizo que y cuando.
+-- Nunca guarda secretos, solo etiquetas en claro (titulo de credencial,
+-- nombre de carpeta, email de miembro) que ya son visibles en otro sitio.
+-- ============================================================
+create table public.group_activity (
+	id uuid primary key default gen_random_uuid(),
+	group_id uuid not null references public.groups (id) on delete cascade,
+	actor_id uuid not null references public.profiles (id),
+	action text not null,
+	target_label text,
+	created_at timestamptz not null default now()
+);
+
+alter table public.group_activity enable row level security;
+
+create policy "group_activity_select_members"
+	on public.group_activity for select
+	to authenticated
+	using (public.is_group_member(group_id, auth.uid()));
+
+-- Sin update/delete: es un log, no se edita. with_check obliga a que cada
+-- fila solo pueda "firmarse" como el propio usuario autenticado, para que
+-- un miembro no pueda insertar actividad falsa atribuida a otro.
+create policy "group_activity_insert_members"
+	on public.group_activity for insert
+	to authenticated
+	with check (actor_id = auth.uid() and public.is_group_member(group_id, auth.uid()));
+
+-- ============================================================
 -- Privilegios de tabla. RLS solo filtra FILAS; sin estos GRANT, Postgres
 -- rechaza la operacion entera antes de llegar a evaluar ninguna politica
 -- (error 42501 "permission denied for table"). Solo "authenticated":
@@ -250,3 +279,4 @@ grant select, insert, update, delete on public.groups to authenticated;
 grant select, insert, update, delete on public.group_members to authenticated;
 grant select, insert, update, delete on public.subgroups to authenticated;
 grant select, insert, update, delete on public.credentials to authenticated;
+grant select, insert on public.group_activity to authenticated;

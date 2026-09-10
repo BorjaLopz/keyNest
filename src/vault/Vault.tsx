@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCopyPassword } from "../hooks/useCopyPassword";
 import { useIsMobile } from "../hooks/useIsMobile";
+import { logActivity } from "../lib/activityService";
 import type { UnlockedSession } from "../lib/authService";
 import {
 	createCredential,
@@ -11,12 +12,13 @@ import {
 	type CredentialFormValues,
 	type CredentialRow,
 } from "../lib/credentialService";
-import { createGroup, inviteMember, listGroups, unwrapMyGroupKey, type GroupSummary } from "../lib/groupService";
+import { createGroup, listGroups, unwrapMyGroupKey, type GroupSummary } from "../lib/groupService";
 import { createSubgroup, listSubgroups, type Subgroup } from "../lib/subgroupService";
+import { ConfirmDialog } from "./ConfirmDialog";
 import { CreateGroupDialog } from "./CreateGroupDialog";
 import { CredentialFormDialog } from "./CredentialFormDialog";
 import { DesktopVault } from "./DesktopVault";
-import { InviteDialog } from "./InviteDialog";
+import { GroupSettingsDialog } from "./GroupSettingsDialog";
 import { MobileVault } from "./MobileVault";
 import type { CredentialSection } from "./types";
 
@@ -40,12 +42,13 @@ export function Vault({ session, onLock }: VaultProps) {
 	const [selectedCredentialId, setSelectedCredentialId] = useState<string | null>(null);
 
 	const [showCreateGroup, setShowCreateGroup] = useState(false);
-	const [showInvite, setShowInvite] = useState(false);
+	const [showGroupSettings, setShowGroupSettings] = useState(false);
 	const [credentialDialog, setCredentialDialog] = useState<
 		| { mode: "create" }
 		| { mode: "edit"; credentialId: string; password: string }
 		| null
 	>(null);
+	const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
 	const selectedGroup = groups.find((g) => g.id === selectedGroupId) ?? null;
 	const groupKey = selectedGroupId ? (groupKeys.get(selectedGroupId) ?? null) : null;
@@ -112,19 +115,28 @@ export function Vault({ session, onLock }: VaultProps) {
 
 	async function handleCreateGroup(name: string) {
 		const id = await createGroup(session, name);
+		await logActivity(id, session.userId, "group_created");
 		await refreshGroups();
 		setSelectedGroupId(id);
 		setShowCreateGroup(false);
 	}
 
-	async function handleInvite(email: string) {
+	function handleGroupRenamed(name: string) {
 		if (!selectedGroupId) return;
-		await inviteMember(session, selectedGroupId, email);
+		setGroups((prev) => prev.map((g) => (g.id === selectedGroupId ? { ...g, name } : g)));
+	}
+
+	async function handleGroupDeleted() {
+		setShowGroupSettings(false);
+		const remaining = groups.filter((g) => g.id !== selectedGroupId);
+		setGroups(remaining);
+		setSelectedGroupId(remaining[0]?.id ?? null);
 	}
 
 	async function handleAddSubgroup(name: string) {
 		if (!selectedGroupId) return;
 		await createSubgroup(selectedGroupId, name);
+		await logActivity(selectedGroupId, session.userId, "subgroup_created", name);
 		setSubgroups(await listSubgroups(selectedGroupId));
 	}
 
@@ -132,8 +144,10 @@ export function Vault({ session, onLock }: VaultProps) {
 		if (!selectedGroupId || !groupKey) return;
 		if (credentialDialog?.mode === "edit") {
 			await updateCredential(groupKey, credentialDialog.credentialId, values);
+			await logActivity(selectedGroupId, session.userId, "credential_updated", values.title);
 		} else {
 			await createCredential(groupKey, selectedGroupId, session.userId, values);
+			await logActivity(selectedGroupId, session.userId, "credential_created", values.title);
 		}
 		await refreshGroupContents(selectedGroupId);
 		setCredentialDialog(null);
@@ -145,11 +159,14 @@ export function Vault({ session, onLock }: VaultProps) {
 		setCredentialDialog({ mode: "edit", credentialId: row.id, password });
 	}
 
-	async function handleDeleteCredential(id: string) {
-		await deleteCredential(id);
-		if (!selectedGroupId) return;
+	async function handleConfirmDelete() {
+		if (!confirmDeleteId || !selectedGroupId) return;
+		const title = credentials.find((c) => c.id === confirmDeleteId)?.title ?? "";
+		await deleteCredential(confirmDeleteId);
+		await logActivity(selectedGroupId, session.userId, "credential_deleted", title);
 		await refreshGroupContents(selectedGroupId);
-		if (selectedCredentialId === id) setSelectedCredentialId(null);
+		if (selectedCredentialId === confirmDeleteId) setSelectedCredentialId(null);
+		setConfirmDeleteId(null);
 	}
 
 	const sharedProps = {
@@ -166,12 +183,16 @@ export function Vault({ session, onLock }: VaultProps) {
 		onSelectCredential: setSelectedCredentialId,
 		selectedCredential,
 		onCopy: (row: CredentialRow) => copy(row),
+		onReveal: (row: CredentialRow) => {
+			if (!groupKey) throw new Error("Clave de grupo no disponible todavía");
+			return decryptCredentialPassword(groupKey, row);
+		},
 		copyStatus,
 		onEdit: handleStartEdit,
-		onDelete: handleDeleteCredential,
+		onDelete: setConfirmDeleteId,
 		onAddCredential: () => setCredentialDialog({ mode: "create" }),
 		onAddSubgroup: handleAddSubgroup,
-		onInvite: () => setShowInvite(true),
+		onOpenGroupSettings: () => setShowGroupSettings(true),
 	};
 
 	return (
@@ -182,8 +203,14 @@ export function Vault({ session, onLock }: VaultProps) {
 				<CreateGroupDialog onCreate={handleCreateGroup} onClose={() => setShowCreateGroup(false)} />
 			) : null}
 
-			{showInvite && selectedGroup ? (
-				<InviteDialog groupName={selectedGroup.name} onInvite={handleInvite} onClose={() => setShowInvite(false)} />
+			{showGroupSettings && selectedGroup ? (
+				<GroupSettingsDialog
+					session={session}
+					group={selectedGroup}
+					onRenamed={handleGroupRenamed}
+					onDeleted={handleGroupDeleted}
+					onClose={() => setShowGroupSettings(false)}
+				/>
 			) : null}
 
 			{credentialDialog ? (
@@ -194,6 +221,17 @@ export function Vault({ session, onLock }: VaultProps) {
 					initialValues={credentialDialog.mode === "edit" ? { password: credentialDialog.password } : undefined}
 					onSubmit={handleSaveCredential}
 					onClose={() => setCredentialDialog(null)}
+				/>
+			) : null}
+
+			{confirmDeleteId ? (
+				<ConfirmDialog
+					title="Borrar credencial"
+					message={`Se borra "${credentials.find((c) => c.id === confirmDeleteId)?.title ?? ""}" para siempre. Esta acción no se puede deshacer.`}
+					confirmLabel="Borrar"
+					danger
+					onConfirm={handleConfirmDelete}
+					onCancel={() => setConfirmDeleteId(null)}
 				/>
 			) : null}
 		</div>

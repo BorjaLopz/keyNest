@@ -80,6 +80,47 @@ export async function inviteMember(
 	if (memberError) throw memberError;
 }
 
+export async function renameGroup(groupId: string, name: string): Promise<void> {
+	const { error } = await supabase.from("groups").update({ name }).eq("id", groupId);
+	if (error) throw error;
+}
+
+// Cascade en FK borra group_members/subgroups/credentials del grupo.
+export async function deleteGroup(groupId: string): Promise<void> {
+	const { error } = await supabase.from("groups").delete().eq("id", groupId);
+	if (error) throw error;
+}
+
+export interface GroupMember {
+	userId: string;
+	email: string | null;
+	role: "admin" | "member";
+}
+
+interface GroupMemberRow {
+	user_id: string;
+	role: "admin" | "member";
+	profiles: { email: string | null };
+}
+
+export async function listGroupMembers(groupId: string): Promise<GroupMember[]> {
+	const { data, error } = await supabase
+		.from("group_members")
+		.select("user_id, role, profiles(email)")
+		.eq("group_id", groupId)
+		.returns<GroupMemberRow[]>();
+	if (error) throw error;
+	return (data ?? []).map((row) => ({ userId: row.user_id, email: row.profiles.email, role: row.role }));
+}
+
+// No rota la clave del grupo (fuera del MVP, fase 2 segun el diseno
+// original): el miembro eliminado pierde acceso a filas nuevas via RLS,
+// pero conserva cualquier copia de la clave que ya tuviera en memoria.
+export async function removeMember(groupId: string, userId: string): Promise<void> {
+	const { error } = await supabase.from("group_members").delete().eq("group_id", groupId).eq("user_id", userId);
+	if (error) throw error;
+}
+
 export async function unwrapMyGroupKey(session: UnlockedSession, groupId: string): Promise<CryptoKey> {
 	const { data, error } = await supabase
 		.from("group_members")

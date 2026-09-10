@@ -22,10 +22,11 @@ export interface VaultViewProps {
 	onSelectCredential: (id: string) => void;
 	selectedCredential: CredentialRow | null;
 	onCopy: (row: CredentialRow) => void;
+	onReveal: (row: CredentialRow) => Promise<string>;
 	copyStatus: string | null;
 	onEdit: (row: CredentialRow) => void;
 	onDelete: (id: string) => void;
 	onAddCredential: () => void;
 	onAddSubgroup: (name: string) => void;
-	onInvite: () => void;
+	onOpenGroupSettings: () => void;
 }

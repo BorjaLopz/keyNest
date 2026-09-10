@@ -711,3 +711,73 @@ button {
 	flex-direction: column;
 	gap: 5px;
 }
+
+/* ── Dialogs ───────────────────────────────────────────────────────── */
+/* Industry's ".dialog" is transparent by design (its blueprint rule
+   treats it like a card meant to sit on solid ground already) — over our
+   translucent backdrop that reads as a washed, illegible smear. Give it a
+   solid ground here instead of touching the vendored stylesheet. */
+.dialog {
+	background: var(--color-bg);
+	max-height: min(600px, 90vh);
+	overflow-y: auto;
+}
+
+.dialog .field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	margin-bottom: 10px;
+}
+
+.dialog-members {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 200px;
+	overflow-y: auto;
+}
+
+.dialog-member-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+	border-bottom: 1px solid var(--color-divider);
+	font-size: 13px;
+}
+
+.dialog-member-row .email {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.field-value-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.field-value-row .field-value {
+	flex: 1;
+}
+
+.activity-row {
+	display: flex;
+	gap: 10px;
+	font-size: 13px;
+	color: var(--color-neutral-800);
+	padding: 4px 0;
+}
+
+.activity-time {
+	font-family: var(--font-mono);
+	font-size: 12px;
+	color: var(--color-neutral-600);
+	width: 74px;
+	flex: none;
+	white-space: nowrap;
+}
