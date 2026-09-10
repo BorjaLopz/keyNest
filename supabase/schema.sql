@@ -94,10 +94,16 @@ $$;
 
 -- --- Politicas groups (dependen de is_group_member, van despues de la funcion) ---
 
+-- "or created_by = auth.uid()" es necesario porque INSERT ... RETURNING
+-- tambien exige pasar la politica de SELECT sobre la fila insertada: justo
+-- al crear el grupo, la fila propia en group_members todavia no existe (se
+-- inserta en la siguiente llamada), asi que is_group_member() daria falso
+-- y el INSERT fallaria con "new row violates row-level security policy"
+-- pese a que su propio with_check es correcto.
 create policy "groups_select_members"
 	on public.groups for select
 	to authenticated
-	using (public.is_group_member(id, auth.uid()));
+	using (public.is_group_member(id, auth.uid()) or created_by = auth.uid());
 
 create policy "groups_insert_any_authenticated"
 	on public.groups for insert

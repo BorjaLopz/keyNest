@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { bufferToBase64 } from "./lib/base64";
+import { GroupPanel } from "./GroupPanel";
 import { loginUser, registerUser, type UnlockedSession } from "./lib/authService";
 
 export function App() {
@@ -25,15 +25,7 @@ export function App() {
 	}
 
 	if (session) {
-		return (
-			<div className="auth-shell">
-				<h1>Sesion desbloqueada</h1>
-				<p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-					Par de claves generado/recuperado y clave privada descifrada en memoria.
-				</p>
-				<code>{bufferToBase64(session.publicKeyRaw).slice(0, 64)}…</code>
-			</div>
-		);
+		return <GroupPanel session={session} />;
 	}
 
 	return (
