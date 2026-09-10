@@ -6,6 +6,7 @@ export type ActivityAction =
 	| "member_invited"
 	| "member_removed"
 	| "subgroup_created"
+	| "subgroup_deleted"
 	| "credential_created"
 	| "credential_updated"
 	| "credential_deleted";
@@ -85,6 +86,7 @@ const ACTION_LABELS: Record<ActivityAction, (target: string | null) => string> =
 	member_invited: (t) => `invitó a ${t}`,
 	member_removed: (t) => `quitó a ${t}`,
 	subgroup_created: (t) => `creó la carpeta "${t}"`,
+	subgroup_deleted: (t) => `borró la carpeta "${t}"`,
 	credential_created: (t) => `creó la credencial "${t}"`,
 	credential_updated: (t) => `editó la credencial "${t}"`,
 	credential_deleted: (t) => `borró la credencial "${t}"`,

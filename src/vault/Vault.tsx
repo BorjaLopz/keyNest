@@ -13,16 +13,14 @@ import {
 	type CredentialRow,
 } from "../lib/credentialService";
 import { createGroup, listGroups, unwrapMyGroupKey, type GroupSummary } from "../lib/groupService";
-import { createSubgroup, listSubgroups, type Subgroup } from "../lib/subgroupService";
+import { createSubgroup, deleteSubgroup, listSubgroups, type Subgroup } from "../lib/subgroupService";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { CreateGroupDialog } from "./CreateGroupDialog";
 import { CredentialFormDialog } from "./CredentialFormDialog";
 import { DesktopVault } from "./DesktopVault";
 import { GroupSettingsDialog } from "./GroupSettingsDialog";
 import { MobileVault } from "./MobileVault";
-import type { CredentialSection } from "./types";
-
-export const NO_SUBGROUP = "__none__";
+import { NO_SUBGROUP, type CredentialSection } from "./types";
 
 interface VaultProps {
 	session: UnlockedSession;
@@ -49,6 +47,7 @@ export function Vault({ session, onLock }: VaultProps) {
 		| null
 	>(null);
 	const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+	const [confirmDeleteSubgroup, setConfirmDeleteSubgroup] = useState<Subgroup | null>(null);
 
 	const selectedGroup = groups.find((g) => g.id === selectedGroupId) ?? null;
 	const groupKey = selectedGroupId ? (groupKeys.get(selectedGroupId) ?? null) : null;
@@ -140,6 +139,14 @@ export function Vault({ session, onLock }: VaultProps) {
 		setSubgroups(await listSubgroups(selectedGroupId));
 	}
 
+	async function handleConfirmDeleteSubgroup() {
+		if (!confirmDeleteSubgroup || !selectedGroupId) return;
+		await deleteSubgroup(confirmDeleteSubgroup.id);
+		await logActivity(selectedGroupId, session.userId, "subgroup_deleted", confirmDeleteSubgroup.name);
+		await refreshGroupContents(selectedGroupId);
+		setConfirmDeleteSubgroup(null);
+	}
+
 	async function handleSaveCredential(values: CredentialFormValues) {
 		if (!selectedGroupId || !groupKey) return;
 		if (credentialDialog?.mode === "edit") {
@@ -192,6 +199,7 @@ export function Vault({ session, onLock }: VaultProps) {
 		onDelete: setConfirmDeleteId,
 		onAddCredential: () => setCredentialDialog({ mode: "create" }),
 		onAddSubgroup: handleAddSubgroup,
+		onDeleteSubgroup: (id: string, name: string) => setConfirmDeleteSubgroup({ id, name }),
 		onOpenGroupSettings: () => setShowGroupSettings(true),
 		onLoadCredentialActivity: listActivityForCredential,
 	};
@@ -244,6 +252,17 @@ export function Vault({ session, onLock }: VaultProps) {
 					danger
 					onConfirm={handleConfirmDelete}
 					onCancel={() => setConfirmDeleteId(null)}
+				/>
+			) : null}
+
+			{confirmDeleteSubgroup ? (
+				<ConfirmDialog
+					title="Borrar carpeta"
+					message={`Se borra la carpeta "${confirmDeleteSubgroup.name}". Sus credenciales no se borran, quedan sin carpeta.`}
+					confirmLabel="Borrar"
+					danger
+					onConfirm={handleConfirmDeleteSubgroup}
+					onCancel={() => setConfirmDeleteSubgroup(null)}
 				/>
 			) : null}
 		</div>

@@ -1,9 +1,9 @@
-import { ChevronRight, Eye, EyeOff, Lock, Plus, Search, Settings } from "lucide-react";
+import { ChevronRight, Eye, EyeOff, Lock, Plus, Search, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
 import { formatRelativeTime, getDomain, getInitials } from "../lib/format";
-import type { VaultViewProps } from "./types";
+import { NO_SUBGROUP, type VaultViewProps } from "./types";
 
 export function DesktopVault({
 	session,
@@ -25,6 +25,7 @@ export function DesktopVault({
 	onDelete,
 	onAddCredential,
 	onAddSubgroup,
+	onDeleteSubgroup,
 	onOpenGroupSettings,
 	onLoadCredentialActivity,
 }: VaultViewProps) {
@@ -134,6 +135,17 @@ export function DesktopVault({
 								<div className="subgroup-header">
 									{section.label}
 									<span className="count">{section.rows.length}</span>
+									{section.key !== NO_SUBGROUP ? (
+										<button
+											type="button"
+											className="btn btn-ghost"
+											style={{ padding: 2, marginLeft: 8 }}
+											title="Borrar carpeta"
+											onClick={() => onDeleteSubgroup(section.key, section.label)}
+										>
+											<Trash2 size={12} strokeWidth={1.5} />
+										</button>
+									) : null}
 								</div>
 								{section.rows.map((row) => (
 									<div

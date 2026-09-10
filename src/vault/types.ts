@@ -3,6 +3,8 @@ import type { UnlockedSession } from "../lib/authService";
 import type { CredentialRow } from "../lib/credentialService";
 import type { GroupSummary } from "../lib/groupService";
 
+export const NO_SUBGROUP = "__none__";
+
 export interface CredentialSection {
 	key: string;
 	label: string;
@@ -29,6 +31,7 @@ export interface VaultViewProps {
 	onDelete: (id: string) => void;
 	onAddCredential: () => void;
 	onAddSubgroup: (name: string) => void;
+	onDeleteSubgroup: (subgroupId: string, name: string) => void;
 	onOpenGroupSettings: () => void;
 	onLoadCredentialActivity: (credentialId: string) => Promise<ActivityEntry[]>;
 }
