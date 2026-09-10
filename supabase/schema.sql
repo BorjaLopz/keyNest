@@ -227,3 +227,15 @@ create policy "credentials_delete_members"
 	on public.credentials for delete
 	to authenticated
 	using (public.is_group_member(group_id, auth.uid()));
+
+-- ============================================================
+-- Privilegios de tabla. RLS solo filtra FILAS; sin estos GRANT, Postgres
+-- rechaza la operacion entera antes de llegar a evaluar ninguna politica
+-- (error 42501 "permission denied for table"). Solo "authenticated":
+-- toda la app requiere sesion, nada se expone al rol "anon".
+-- ============================================================
+grant select, insert, update, delete on public.profiles to authenticated;
+grant select, insert, update, delete on public.groups to authenticated;
+grant select, insert, update, delete on public.group_members to authenticated;
+grant select, insert, update, delete on public.subgroups to authenticated;
+grant select, insert, update, delete on public.credentials to authenticated;
