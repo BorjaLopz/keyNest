@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useCopyPassword } from "../hooks/useCopyPassword";
 import { useIsMobile } from "../hooks/useIsMobile";
-import { logActivity } from "../lib/activityService";
+import { listActivityForCredential, logActivity } from "../lib/activityService";
 import type { UnlockedSession } from "../lib/authService";
 import {
 	createCredential,
@@ -45,7 +45,7 @@ export function Vault({ session, onLock }: VaultProps) {
 	const [showGroupSettings, setShowGroupSettings] = useState(false);
 	const [credentialDialog, setCredentialDialog] = useState<
 		| { mode: "create" }
-		| { mode: "edit"; credentialId: string; password: string }
+		| { mode: "edit"; credentialId: string; row: CredentialRow; password: string }
 		| null
 	>(null);
 	const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -144,10 +144,10 @@ export function Vault({ session, onLock }: VaultProps) {
 		if (!selectedGroupId || !groupKey) return;
 		if (credentialDialog?.mode === "edit") {
 			await updateCredential(groupKey, credentialDialog.credentialId, values);
-			await logActivity(selectedGroupId, session.userId, "credential_updated", values.title);
+			await logActivity(selectedGroupId, session.userId, "credential_updated", values.title, credentialDialog.credentialId);
 		} else {
-			await createCredential(groupKey, selectedGroupId, session.userId, values);
-			await logActivity(selectedGroupId, session.userId, "credential_created", values.title);
+			const id = await createCredential(groupKey, selectedGroupId, session.userId, values);
+			await logActivity(selectedGroupId, session.userId, "credential_created", values.title, id);
 		}
 		await refreshGroupContents(selectedGroupId);
 		setCredentialDialog(null);
@@ -156,7 +156,7 @@ export function Vault({ session, onLock }: VaultProps) {
 	async function handleStartEdit(row: CredentialRow) {
 		if (!groupKey) return;
 		const password = await decryptCredentialPassword(groupKey, row);
-		setCredentialDialog({ mode: "edit", credentialId: row.id, password });
+		setCredentialDialog({ mode: "edit", credentialId: row.id, row, password });
 	}
 
 	async function handleConfirmDelete() {
@@ -193,6 +193,7 @@ export function Vault({ session, onLock }: VaultProps) {
 		onAddCredential: () => setCredentialDialog({ mode: "create" }),
 		onAddSubgroup: handleAddSubgroup,
 		onOpenGroupSettings: () => setShowGroupSettings(true),
+		onLoadCredentialActivity: listActivityForCredential,
 	};
 
 	return (
@@ -218,7 +219,18 @@ export function Vault({ session, onLock }: VaultProps) {
 					title={credentialDialog.mode === "edit" ? "Editar credencial" : "Nueva credencial"}
 					subgroups={subgroups}
 					submitLabel={credentialDialog.mode === "edit" ? "Guardar" : "Crear"}
-					initialValues={credentialDialog.mode === "edit" ? { password: credentialDialog.password } : undefined}
+					initialValues={
+						credentialDialog.mode === "edit"
+							? {
+									title: credentialDialog.row.title,
+									username: credentialDialog.row.username ?? "",
+									url: credentialDialog.row.url ?? "",
+									notes: credentialDialog.row.notes ?? "",
+									subgroupId: credentialDialog.row.subgroup_id,
+									password: credentialDialog.password,
+								}
+							: undefined
+					}
 					onSubmit={handleSaveCredential}
 					onClose={() => setCredentialDialog(null)}
 				/>

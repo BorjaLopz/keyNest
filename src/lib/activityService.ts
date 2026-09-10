@@ -33,14 +33,26 @@ export async function logActivity(
 	actorId: string,
 	action: ActivityAction,
 	targetLabel?: string,
+	credentialId?: string,
 ): Promise<void> {
 	const { error } = await supabase.from("group_activity").insert({
 		group_id: groupId,
 		actor_id: actorId,
 		action,
 		target_label: targetLabel ?? null,
+		credential_id: credentialId ?? null,
 	});
 	if (error) throw error;
+}
+
+function mapRow(row: ActivityRow): ActivityEntry {
+	return {
+		id: row.id,
+		actorEmail: row.profiles.email,
+		action: row.action,
+		targetLabel: row.target_label,
+		createdAt: row.created_at,
+	};
 }
 
 export async function listActivity(groupId: string, limit = 50): Promise<ActivityEntry[]> {
@@ -52,13 +64,19 @@ export async function listActivity(groupId: string, limit = 50): Promise<Activit
 		.limit(limit)
 		.returns<ActivityRow[]>();
 	if (error) throw error;
-	return (data ?? []).map((row) => ({
-		id: row.id,
-		actorEmail: row.profiles.email,
-		action: row.action,
-		targetLabel: row.target_label,
-		createdAt: row.created_at,
-	}));
+	return (data ?? []).map(mapRow);
+}
+
+export async function listActivityForCredential(credentialId: string, limit = 20): Promise<ActivityEntry[]> {
+	const { data, error } = await supabase
+		.from("group_activity")
+		.select("id, action, target_label, created_at, profiles(email)")
+		.eq("credential_id", credentialId)
+		.order("created_at", { ascending: false })
+		.limit(limit)
+		.returns<ActivityRow[]>();
+	if (error) throw error;
+	return (data ?? []).map(mapRow);
 }
 
 const ACTION_LABELS: Record<ActivityAction, (target: string | null) => string> = {

@@ -37,20 +37,25 @@ export async function createCredential(
 	groupId: string,
 	createdBy: string,
 	values: CredentialFormValues,
-): Promise<void> {
+): Promise<string> {
 	const encrypted = await aesEncrypt(groupKey, new TextEncoder().encode(values.password));
-	const { error } = await supabase.from("credentials").insert({
-		group_id: groupId,
-		subgroup_id: values.subgroupId,
-		title: values.title,
-		username: values.username || null,
-		url: values.url || null,
-		notes: values.notes || null,
-		encrypted_password: bufferToBase64(encrypted.ciphertext),
-		iv: bufferToBase64(encrypted.iv.buffer),
-		created_by: createdBy,
-	});
+	const { data, error } = await supabase
+		.from("credentials")
+		.insert({
+			group_id: groupId,
+			subgroup_id: values.subgroupId,
+			title: values.title,
+			username: values.username || null,
+			url: values.url || null,
+			notes: values.notes || null,
+			encrypted_password: bufferToBase64(encrypted.ciphertext),
+			iv: bufferToBase64(encrypted.iv.buffer),
+			created_by: createdBy,
+		})
+		.select("id")
+		.single<{ id: string }>();
 	if (error) throw error;
+	return data.id;
 }
 
 export async function updateCredential(

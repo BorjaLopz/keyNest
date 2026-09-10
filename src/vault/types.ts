@@ -1,3 +1,4 @@
+import type { ActivityEntry } from "../lib/activityService";
 import type { UnlockedSession } from "../lib/authService";
 import type { CredentialRow } from "../lib/credentialService";
 import type { GroupSummary } from "../lib/groupService";
@@ -29,4 +30,5 @@ export interface VaultViewProps {
 	onAddCredential: () => void;
 	onAddSubgroup: (name: string) => void;
 	onOpenGroupSettings: () => void;
+	onLoadCredentialActivity: (credentialId: string) => Promise<ActivityEntry[]>;
 }

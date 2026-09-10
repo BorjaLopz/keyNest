@@ -250,6 +250,11 @@ create table public.group_activity (
 	actor_id uuid not null references public.profiles (id),
 	action text not null,
 	target_label text,
+	-- nullable a proposito: on delete set null (no cascade) para que el
+	-- evento "borro la credencial X" sobreviva en el log del grupo aunque
+	-- la credencial ya no exista; solo se pierde la capacidad de filtrar
+	-- por ella.
+	credential_id uuid references public.credentials (id) on delete set null,
 	created_at timestamptz not null default now()
 );
 

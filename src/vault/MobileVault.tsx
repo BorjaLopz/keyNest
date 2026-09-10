@@ -1,6 +1,8 @@
 import { ArrowLeft, Copy, Eye, EyeOff, Lock, Plus, Search, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getDomain, getInitials } from "../lib/format";
+import type { ActivityEntry } from "../lib/activityService";
+import { describeActivity } from "../lib/activityService";
+import { formatRelativeTime, getDomain, getInitials } from "../lib/format";
 import type { VaultViewProps } from "./types";
 
 export function MobileVault({
@@ -23,13 +25,18 @@ export function MobileVault({
 	onAddCredential,
 	onAddSubgroup,
 	onOpenGroupSettings,
+	onLoadCredentialActivity,
 }: VaultViewProps) {
 	const [newSubgroupName, setNewSubgroupName] = useState("");
 	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
+	const [activity, setActivity] = useState<ActivityEntry[]>([]);
 	const credentialCount = sections.reduce((sum, s) => sum + s.rows.length, 0);
 
 	useEffect(() => {
 		setRevealedPassword(null);
+		setActivity([]);
+		if (selectedCredentialId) onLoadCredentialActivity(selectedCredentialId).then(setActivity);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedCredentialId]);
 
 	async function handleToggleReveal() {
@@ -96,6 +103,21 @@ export function MobileVault({
 							<i className="corner br" />
 							<div className="field-label">Notas</div>
 							<div className="notes-body">{selectedCredential.notes}</div>
+						</div>
+					) : null}
+					{activity.length > 0 ? (
+						<div>
+							<div className="mono-label" style={{ marginBottom: 6 }}>
+								Actividad
+							</div>
+							{activity.map((entry) => (
+								<div key={entry.id} className="activity-row">
+									<span className="activity-time">{formatRelativeTime(entry.createdAt)}</span>
+									<span>
+										{entry.actorEmail ?? "alguien"} {describeActivity(entry)}
+									</span>
+								</div>
+							))}
 						</div>
 					) : null}
 					{copyStatus ? <span className="mono-label">{copyStatus}</span> : null}
