@@ -75,7 +75,10 @@ export function App() {
 					<i className="corner bl" />
 					<i className="corner br" />
 
-					<img src="/brand/keynest-lockup.svg" alt="KeyNest" style={{ height: 40, marginBottom: 8 }} />
+					<div className="auth-brand">
+						<img src="/brand/keynest-monogram.svg" alt="" height={30} />
+						<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={22} />
+					</div>
 
 					<div className="field">
 						<label>Bloqueado</label>
@@ -114,7 +117,10 @@ export function App() {
 				<i className="corner bl" />
 				<i className="corner br" />
 
-				<img src="/brand/keynest-lockup.svg" alt="KeyNest" style={{ height: 40, marginBottom: 8 }} />
+				<div className="auth-brand">
+					<img src="/brand/keynest-monogram.svg" alt="" height={30} />
+					<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={22} />
+				</div>
 
 				<div className="field">
 					<label>Email</label>

@@ -796,6 +796,13 @@ button {
 	gap: 12px;
 }
 
+.auth-brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 8px;
+}
+
 .auth-card .field {
 	display: flex;
 	flex-direction: column;
