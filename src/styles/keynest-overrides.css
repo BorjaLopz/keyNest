@@ -116,6 +116,11 @@ button {
 	font-size: 13px;
 }
 
+.rail.expanded .rail-bottom {
+	flex-direction: row;
+	justify-content: center;
+}
+
 .rail-toggle {
 	width: 28px;
 	height: 28px;
