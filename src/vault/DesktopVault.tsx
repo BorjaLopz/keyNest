@@ -1,4 +1,4 @@
-import { ChevronRight, Eye, EyeOff, Lock, Plus, Search, Settings, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Lock, Plus, Search, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
@@ -32,6 +32,11 @@ export function DesktopVault({
 	const [newSubgroupName, setNewSubgroupName] = useState("");
 	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
 	const [activity, setActivity] = useState<ActivityEntry[]>([]);
+	const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem("keynest_rail_expanded") === "1");
+
+	useEffect(() => {
+		localStorage.setItem("keynest_rail_expanded", railExpanded ? "1" : "0");
+	}, [railExpanded]);
 
 	useEffect(() => {
 		setRevealedPassword(null);
@@ -61,8 +66,15 @@ export function DesktopVault({
 
 	return (
 		<div className="vault-desktop">
-			<nav className="rail">
-				<img src="/brand/keynest-monogram-inverse.svg" alt="KeyNest" width={26} height={26} />
+			<nav className={`rail${railExpanded ? " expanded" : ""}`}>
+				{railExpanded ? (
+					<div className="rail-brand">
+						<img src="/brand/keynest-monogram-inverse.svg" alt="" width={22} height={22} />
+						KeyNest
+					</div>
+				) : (
+					<img src="/brand/keynest-monogram-inverse.svg" alt="KeyNest" width={26} height={26} />
+				)}
 				<div className="rail-divider" />
 				{groups.map((group) => (
 					<button
@@ -73,13 +85,35 @@ export function DesktopVault({
 						aria-label={group.name}
 						onClick={() => onSelectGroup(group.id)}
 					>
-						{getInitials(group.name)}
+						{railExpanded ? (
+							<span className="rail-group-row">
+								<span className="rail-group-icon">{getInitials(group.name)}</span>
+								<span className="rail-group-name">{group.name}</span>
+							</span>
+						) : (
+							getInitials(group.name)
+						)}
 					</button>
 				))}
 				<button type="button" className="rail-add" title="Crear grupo" onClick={onAddGroup}>
-					<Plus size={20} strokeWidth={1.5} />
+					{railExpanded ? (
+						<span className="rail-group-row">
+							<Plus size={16} strokeWidth={1.5} />
+							<span className="rail-group-name">Crear grupo</span>
+						</span>
+					) : (
+						<Plus size={20} strokeWidth={1.5} />
+					)}
 				</button>
 				<div className="rail-bottom">
+					<button
+						type="button"
+						className="rail-toggle"
+						title={railExpanded ? "Colapsar" : "Expandir"}
+						onClick={() => setRailExpanded((v) => !v)}
+					>
+						{railExpanded ? <ChevronLeft size={14} strokeWidth={1.5} /> : <ChevronRight size={14} strokeWidth={1.5} />}
+					</button>
 					<button type="button" className="rail-lock" title="Bloquear ahora" onClick={onLock}>
 						<Lock size={18} strokeWidth={1.5} />
 					</button>
