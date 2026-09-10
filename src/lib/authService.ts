@@ -67,6 +67,15 @@ export async function loginUser(email: string, masterPassword: string): Promise<
 	return { userId, email: profile.email ?? email, publicKeyRaw, privateKey };
 }
 
+// Supabase Auth persiste su sesion en localStorage por defecto: si el
+// navegador todavia tiene una activa (no se cerro sesion explicitamente),
+// se puede saltar el formulario de email+password e ir directo a pedir
+// solo la master password.
+export async function getActiveSessionEmail(): Promise<string | null> {
+	const { data } = await supabase.auth.getSession();
+	return data.session?.user.email ?? null;
+}
+
 // "Bloquear" != "cerrar sesion": bloquear solo borra las claves en memoria
 // (App.tsx), la sesion de Supabase Auth sigue activa. Esto es lo que
 // realmente cierra la sesion contra el servidor.

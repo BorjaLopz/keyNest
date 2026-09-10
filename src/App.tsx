@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { loginUser, logoutUser, registerUser, type UnlockedSession } from "./lib/authService";
+import { useEffect, useState } from "react";
+import { getActiveSessionEmail, loginUser, logoutUser, registerUser, type UnlockedSession } from "./lib/authService";
 import { Vault } from "./vault/Vault";
 
 export function App() {
@@ -11,6 +11,12 @@ export function App() {
 	// Bloqueado != sin sesion: recuerda el email, la sesion de Supabase
 	// Auth sigue activa, solo faltan las claves descifradas en memoria.
 	const [lockedEmail, setLockedEmail] = useState<string | null>(null);
+
+	useEffect(() => {
+		getActiveSessionEmail().then((activeEmail) => {
+			if (activeEmail) setLockedEmail(activeEmail);
+		});
+	}, []);
 
 	async function handleSubmit(action: "register" | "login") {
 		setLoading(true);
