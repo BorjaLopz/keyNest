@@ -6,12 +6,17 @@
 -- ============================================================
 create table public.profiles (
 	id uuid primary key references auth.users (id) on delete cascade,
+	email text,
 	public_key text not null,
 	encrypted_private_key text not null,
 	private_key_iv text not null,
 	salt text not null,
 	created_at timestamptz not null default now()
 );
+
+-- Copia de auth.users.email, no autoritativa: auth.users no es consultable
+-- por REST, y hace falta buscar por email para invitar a un grupo.
+create unique index profiles_email_key on public.profiles (email);
 
 alter table public.profiles enable row level security;
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { GroupRow } from "./GroupRow";
 import type { UnlockedSession } from "./lib/authService";
-import { createGroup, listGroups, unwrapMyGroupKey, type GroupSummary } from "./lib/groupService";
+import { createGroup, listGroups, type GroupSummary } from "./lib/groupService";
 
 interface GroupPanelProps {
 	session: UnlockedSession;
@@ -10,7 +11,6 @@ export function GroupPanel({ session }: GroupPanelProps) {
 	const [groups, setGroups] = useState<GroupSummary[]>([]);
 	const [newGroupName, setNewGroupName] = useState("");
 	const [loading, setLoading] = useState(false);
-	const [status, setStatus] = useState<string | null>(null);
 
 	async function refresh() {
 		setGroups(await listGroups(session));
@@ -34,16 +34,6 @@ export function GroupPanel({ session }: GroupPanelProps) {
 		}
 	}
 
-	async function handleVerify(group: GroupSummary) {
-		setStatus(null);
-		try {
-			await unwrapMyGroupKey(session, group.id);
-			setStatus(`"${group.name}": clave de grupo desenvuelta correctamente.`);
-		} catch {
-			setStatus(`"${group.name}": fallo al desenvolver la clave.`);
-		}
-	}
-
 	return (
 		<div className="auth-shell">
 			<h1>Tus grupos</h1>
@@ -56,20 +46,11 @@ export function GroupPanel({ session }: GroupPanelProps) {
 				Crear grupo
 			</button>
 
-			<ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+			<ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
 				{groups.map((group) => (
-					<li key={group.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-						<span>
-							{group.name} <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>({group.role})</span>
-						</span>
-						<button className="secondary" onClick={() => handleVerify(group)}>
-							Verificar clave
-						</button>
-					</li>
+					<GroupRow key={group.id} session={session} group={group} />
 				))}
 			</ul>
-
-			{status ? <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{status}</span> : null}
 		</div>
 	);
 }

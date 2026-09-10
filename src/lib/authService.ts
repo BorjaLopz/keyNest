@@ -28,6 +28,7 @@ export async function registerUser(email: string, masterPassword: string): Promi
 
 	const { error: profileError } = await supabase.from("profiles").insert({
 		id: userId,
+		email,
 		public_key: bufferToBase64(publicKeyRaw),
 		encrypted_private_key: bufferToBase64(encryptedPrivateKey.ciphertext),
 		private_key_iv: bufferToBase64(encryptedPrivateKey.iv.buffer),

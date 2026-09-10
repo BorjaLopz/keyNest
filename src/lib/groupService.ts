@@ -50,6 +50,36 @@ export async function listGroups(session: UnlockedSession): Promise<GroupSummary
 	return (data ?? []).map((row) => ({ id: row.groups.id, name: row.groups.name, role: row.role }));
 }
 
+// El admin desenvuelve su copia de la clave de grupo (en memoria, nunca
+// sale del cliente) y la re-envuelve con la clave publica del invitado.
+// Requiere que el invitado ya tenga cuenta en KeyNest (necesita su
+// public_key, que solo existe tras el registro).
+export async function inviteMember(
+	session: UnlockedSession,
+	groupId: string,
+	inviteeEmail: string,
+): Promise<void> {
+	const { data: invitee, error: profileError } = await supabase
+		.from("profiles")
+		.select("id, public_key")
+		.eq("email", inviteeEmail)
+		.maybeSingle<{ id: string; public_key: string }>();
+	if (profileError) throw profileError;
+	if (!invitee) throw new Error(`No existe ninguna cuenta KeyNest con el email ${inviteeEmail}`);
+
+	const myGroupKey = await unwrapMyGroupKey(session, groupId);
+	const inviteePublicKey = await importPublicKey(base64ToBuffer(invitee.public_key));
+	const wrapped = await wrapGroupKeyForMember(myGroupKey, inviteePublicKey);
+
+	const { error: memberError } = await supabase.from("group_members").insert({
+		group_id: groupId,
+		user_id: invitee.id,
+		encrypted_group_key: bufferToBase64(wrapped),
+		role: "member",
+	});
+	if (memberError) throw memberError;
+}
+
 export async function unwrapMyGroupKey(session: UnlockedSession, groupId: string): Promise<CryptoKey> {
 	const { data, error } = await supabase
 		.from("group_members")
