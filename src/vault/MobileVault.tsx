@@ -171,7 +171,7 @@ export function MobileVault({
 						onChange={(e) => onQueryChange(e.target.value)}
 					/>
 				</div>
-				<div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+				<div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
 					<button type="button" className="btn btn-secondary" style={{ flex: 1, height: 44 }} onClick={onAddCredential}>
 						<Plus size={16} strokeWidth={1.5} /> Credencial
 					</button>
@@ -184,7 +184,7 @@ export function MobileVault({
 						<Settings size={16} strokeWidth={1.5} />
 					</button>
 				</div>
-				<div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+				<div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
 					<input
 						className="input"
 						placeholder="nueva carpeta"

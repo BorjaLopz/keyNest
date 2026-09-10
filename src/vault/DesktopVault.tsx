@@ -95,7 +95,7 @@ export function DesktopVault({
 						<h2>{selectedGroup?.name ?? "—"}</h2>
 						<span className="mono-label">{credentialCount} CREDENCIALES</span>
 					</div>
-					<div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+					<div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
 						<div className="list-filter" style={{ flex: 1 }}>
 							<Search size={14} strokeWidth={1.5} color="var(--color-neutral-600)" />
 							<input
@@ -111,7 +111,7 @@ export function DesktopVault({
 							<Plus size={16} strokeWidth={1.5} />
 						</button>
 					</div>
-					<div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+					<div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
 						<input
 							className="input"
 							placeholder="nueva carpeta"
