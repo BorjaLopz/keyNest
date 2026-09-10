@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, Folder, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, Eye, EyeOff, FolderPlus, Folder, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
@@ -33,7 +33,7 @@ export function DesktopVault({
 	collapsedSections,
 	onToggleSection,
 }: VaultViewProps) {
-	const [newSubgroupName, setNewSubgroupName] = useState("");
+	const [showAddMenu, setShowAddMenu] = useState(false);
 	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
 	const [activity, setActivity] = useState<ActivityEntry[]>([]);
 	const [railExpanded, setRailExpanded] = useState(() => localStorage.getItem("keynest_rail_expanded") === "1");
@@ -56,13 +56,6 @@ export function DesktopVault({
 		}
 		if (!selectedCredential) return;
 		setRevealedPassword(await onReveal(selectedCredential));
-	}
-
-	function handleAddSubgroup() {
-		const name = newSubgroupName.trim();
-		if (!name) return;
-		onAddSubgroup(name);
-		setNewSubgroupName("");
 	}
 
 	function countNode(node: FolderNode): number {
@@ -224,28 +217,42 @@ export function DesktopVault({
 						>
 							<Settings size={15} strokeWidth={1.5} />
 						</button>
-						<button
-							type="button"
-							className="btn btn-secondary btn-icon"
-							style={{ width: 30, height: 30 }}
-							title="Nueva credencial"
-							onClick={onAddCredential}
-						>
-							<Plus size={15} strokeWidth={1.5} />
-						</button>
-					</div>
-					<div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
-						<input
-							className="input"
-							placeholder="nueva carpeta"
-							value={newSubgroupName}
-							onChange={(e) => setNewSubgroupName(e.target.value)}
-							onKeyDown={(e) => e.key === "Enter" && handleAddSubgroup()}
-							style={{ flex: 1, height: 28, fontSize: 12 }}
-						/>
-						<button type="button" className="btn btn-secondary" onClick={handleAddSubgroup} style={{ height: 28 }}>
-							+ Carpeta
-						</button>
+						<div className="add-menu-anchor">
+							<button
+								type="button"
+								className="btn btn-secondary btn-icon"
+								style={{ width: 30, height: 30 }}
+								title="Añadir"
+								onClick={() => setShowAddMenu((v) => !v)}
+							>
+								<Plus size={15} strokeWidth={1.5} />
+							</button>
+							{showAddMenu ? (
+								<>
+									<div className="add-menu-backdrop" onClick={() => setShowAddMenu(false)} />
+									<div className="add-menu">
+										<button
+											type="button"
+											onClick={() => {
+												setShowAddMenu(false);
+												onAddCredential();
+											}}
+										>
+											<Plus size={14} strokeWidth={1.5} /> Nueva credencial
+										</button>
+										<button
+											type="button"
+											onClick={() => {
+												setShowAddMenu(false);
+												onAddSubgroup();
+											}}
+										>
+											<FolderPlus size={14} strokeWidth={1.5} /> Nueva carpeta
+										</button>
+									</div>
+								</>
+							) : null}
+						</div>
 					</div>
 				</div>
 

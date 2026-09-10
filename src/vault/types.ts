@@ -33,7 +33,7 @@ export interface VaultViewProps {
 	onEdit: (row: CredentialRow) => void;
 	onDelete: (id: string) => void;
 	onAddCredential: () => void;
-	onAddSubgroup: (name: string) => void;
+	onAddSubgroup: () => void;
 	onAddSubfolder: (parentId: string, parentName: string) => void;
 	onDeleteSubgroup: (subgroupId: string, name: string) => void;
 	onOpenGroupSettings: () => void;

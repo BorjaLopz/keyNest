@@ -42,7 +42,7 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 
 	const [showCreateGroup, setShowCreateGroup] = useState(false);
 	const [showGroupSettings, setShowGroupSettings] = useState(false);
-	const [subfolderParent, setSubfolderParent] = useState<{ id: string; name: string } | null>(null);
+	const [folderDialog, setFolderDialog] = useState<{ parentId: string | null; parentName: string } | null>(null);
 	const [credentialDialog, setCredentialDialog] = useState<
 		| { mode: "create" }
 		| { mode: "edit"; credentialId: string; row: CredentialRow; password: string }
@@ -165,19 +165,12 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 		setSelectedGroupId(remaining[0]?.id ?? null);
 	}
 
-	async function handleAddSubgroup(name: string) {
-		if (!selectedGroupId) return;
-		await createSubgroup(selectedGroupId, name);
+	async function handleCreateFolder(name: string) {
+		if (!selectedGroupId || !folderDialog) return;
+		await createSubgroup(selectedGroupId, name, folderDialog.parentId);
 		await logActivity(selectedGroupId, session.userId, "subgroup_created", name);
 		setSubgroups(await listSubgroups(selectedGroupId));
-	}
-
-	async function handleAddSubfolder(name: string) {
-		if (!selectedGroupId || !subfolderParent) return;
-		await createSubgroup(selectedGroupId, name, subfolderParent.id);
-		await logActivity(selectedGroupId, session.userId, "subgroup_created", name);
-		setSubgroups(await listSubgroups(selectedGroupId));
-		setSubfolderParent(null);
+		setFolderDialog(null);
 	}
 
 	async function handleConfirmDeleteSubgroup() {
@@ -240,8 +233,8 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 		onEdit: handleStartEdit,
 		onDelete: setConfirmDeleteId,
 		onAddCredential: () => setCredentialDialog({ mode: "create" }),
-		onAddSubgroup: handleAddSubgroup,
-		onAddSubfolder: (parentId: string, parentName: string) => setSubfolderParent({ id: parentId, name: parentName }),
+		onAddSubgroup: () => setFolderDialog({ parentId: null, parentName: selectedGroup?.name ?? "" }),
+		onAddSubfolder: (parentId: string, parentName: string) => setFolderDialog({ parentId, parentName }),
 		onDeleteSubgroup: (id: string, name: string) => setConfirmDeleteSubgroup({ id, name }),
 		onOpenGroupSettings: () => setShowGroupSettings(true),
 		onLoadCredentialActivity: listActivityForCredential,
@@ -257,12 +250,12 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 				<NameDialog title="Nuevo grupo" label="Nombre" onSubmit={handleCreateGroup} onClose={() => setShowCreateGroup(false)} />
 			) : null}
 
-			{subfolderParent ? (
+			{folderDialog ? (
 				<NameDialog
-					title={`Nueva subcarpeta dentro de "${subfolderParent.name}"`}
+					title={folderDialog.parentId ? `Nueva subcarpeta dentro de "${folderDialog.parentName}"` : "Nueva carpeta"}
 					label="Nombre"
-					onSubmit={handleAddSubfolder}
-					onClose={() => setSubfolderParent(null)}
+					onSubmit={handleCreateFolder}
+					onClose={() => setFolderDialog(null)}
 				/>
 			) : null}
 

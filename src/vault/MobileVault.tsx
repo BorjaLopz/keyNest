@@ -1,4 +1,4 @@
-import { ArrowLeft, ChevronDown, Copy, Eye, EyeOff, Folder, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Eye, EyeOff, FolderPlus, Folder, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
@@ -32,7 +32,7 @@ export function MobileVault({
 	collapsedSections,
 	onToggleSection,
 }: VaultViewProps) {
-	const [newSubgroupName, setNewSubgroupName] = useState("");
+	const [showAddMenu, setShowAddMenu] = useState(false);
 	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
 	const [activity, setActivity] = useState<ActivityEntry[]>([]);
 
@@ -148,13 +148,6 @@ export function MobileVault({
 		);
 	}
 
-	function handleAddSubgroup() {
-		const name = newSubgroupName.trim();
-		if (!name) return;
-		onAddSubgroup(name);
-		setNewSubgroupName("");
-	}
-
 	function renderFolder(node: FolderNode) {
 		const collapsed = collapsedSections.has(node.id);
 		const indent = 16 + node.depth * 16;
@@ -254,9 +247,41 @@ export function MobileVault({
 					/>
 				</div>
 				<div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
-					<button type="button" className="btn btn-secondary" style={{ flex: 1, height: 44 }} onClick={onAddCredential}>
-						<Plus size={16} strokeWidth={1.5} /> Credencial
-					</button>
+					<div className="add-menu-anchor" style={{ flex: 1 }}>
+						<button
+							type="button"
+							className="btn btn-secondary"
+							style={{ width: "100%", height: 44 }}
+							onClick={() => setShowAddMenu((v) => !v)}
+						>
+							<Plus size={16} strokeWidth={1.5} /> Añadir
+						</button>
+						{showAddMenu ? (
+							<>
+								<div className="add-menu-backdrop" onClick={() => setShowAddMenu(false)} />
+								<div className="add-menu">
+									<button
+										type="button"
+										onClick={() => {
+											setShowAddMenu(false);
+											onAddCredential();
+										}}
+									>
+										<Plus size={14} strokeWidth={1.5} /> Nueva credencial
+									</button>
+									<button
+										type="button"
+										onClick={() => {
+											setShowAddMenu(false);
+											onAddSubgroup();
+										}}
+									>
+										<FolderPlus size={14} strokeWidth={1.5} /> Nueva carpeta
+									</button>
+								</div>
+							</>
+						) : null}
+					</div>
 					<button
 						type="button"
 						className="btn btn-secondary"
@@ -264,19 +289,6 @@ export function MobileVault({
 						onClick={onOpenGroupSettings}
 					>
 						<Settings size={16} strokeWidth={1.5} />
-					</button>
-				</div>
-				<div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center" }}>
-					<input
-						className="input"
-						placeholder="nueva carpeta"
-						value={newSubgroupName}
-						onChange={(e) => setNewSubgroupName(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && handleAddSubgroup()}
-						style={{ flex: 1, height: 36, fontSize: 13 }}
-					/>
-					<button type="button" className="btn btn-secondary" onClick={handleAddSubgroup} style={{ height: 36 }}>
-						+
 					</button>
 				</div>
 			</div>

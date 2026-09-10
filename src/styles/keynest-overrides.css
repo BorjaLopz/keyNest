@@ -238,7 +238,6 @@ button {
 }
 
 .list-filter {
-	margin-top: 10px;
 	height: 30px;
 	padding: 0 10px;
 	border: 1px solid var(--color-divider);
@@ -257,6 +256,49 @@ button {
 	font-family: var(--font-body);
 	color: var(--color-text);
 	min-width: 0;
+}
+
+.add-menu-anchor {
+	position: relative;
+}
+
+.add-menu-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 90;
+}
+
+.add-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	right: 0;
+	z-index: 91;
+	background: var(--color-bg);
+	border: 1px solid var(--color-divider);
+	box-shadow: var(--shadow-md);
+	min-width: 170px;
+	display: flex;
+	flex-direction: column;
+	padding: 4px;
+}
+
+.add-menu button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 8px 10px;
+	background: none;
+	border: none;
+	font-family: var(--font-body);
+	font-size: 13px;
+	color: var(--color-text);
+	cursor: pointer;
+	text-align: left;
+}
+
+.add-menu button:hover {
+	background: var(--color-accent-100);
 }
 
 .list-scroll {
