@@ -32,7 +32,6 @@ export function CredentialForm({
 	onCancel,
 }: CredentialFormProps) {
 	const [values, setValues] = useState<CredentialFormValues>({ ...emptyValues, ...initialValues });
-	const [confirmPassword, setConfirmPassword] = useState(initialValues?.password ?? "");
 	const [showPassword, setShowPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -44,7 +43,6 @@ export function CredentialForm({
 	function handleGenerate() {
 		const generated = generateSecurePassword();
 		update("password", generated);
-		setConfirmPassword(generated);
 		setShowPassword(true);
 	}
 
@@ -53,10 +51,6 @@ export function CredentialForm({
 		if (!values.title.trim()) return;
 		if (requirePassword && !values.password) {
 			setError("La password es obligatoria.");
-			return;
-		}
-		if (values.password && values.password !== confirmPassword) {
-			setError("Las contraseñas no coinciden.");
 			return;
 		}
 		setLoading(true);
@@ -123,16 +117,6 @@ export function CredentialForm({
 					</span>
 				</div>
 			) : null}
-
-			<div className="field">
-				<label>Repetir password</label>
-				<input
-					className="input"
-					type={showPassword ? "text" : "password"}
-					value={confirmPassword}
-					onChange={(e) => setConfirmPassword(e.target.value)}
-				/>
-			</div>
 
 			<div className="field">
 				<label>Carpeta</label>
