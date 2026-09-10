@@ -4,11 +4,13 @@ import { supabase } from "./supabaseClient";
 
 export interface UnlockedSession {
 	userId: string;
+	email: string;
 	publicKeyRaw: ArrayBuffer;
 	privateKey: CryptoKey;
 }
 
 interface ProfileRow {
+	email: string | null;
 	public_key: string;
 	encrypted_private_key: string;
 	private_key_iv: string;
@@ -37,7 +39,7 @@ export async function registerUser(email: string, masterPassword: string): Promi
 	if (profileError) throw profileError;
 
 	const privateKey = await importPrivateKey(privateKeyRaw);
-	return { userId, publicKeyRaw, privateKey };
+	return { userId, email, publicKeyRaw, privateKey };
 }
 
 export async function loginUser(email: string, masterPassword: string): Promise<UnlockedSession> {
@@ -47,7 +49,7 @@ export async function loginUser(email: string, masterPassword: string): Promise<
 
 	const { data: profile, error: profileError } = await supabase
 		.from("profiles")
-		.select("public_key, encrypted_private_key, private_key_iv, salt")
+		.select("email, public_key, encrypted_private_key, private_key_iv, salt")
 		.eq("id", userId)
 		.single<ProfileRow>();
 	if (profileError) throw profileError;
@@ -62,5 +64,5 @@ export async function loginUser(email: string, masterPassword: string): Promise<
 	const privateKey = await importPrivateKey(privateKeyRaw);
 	const publicKeyRaw = base64ToBuffer(profile.public_key);
 
-	return { userId, publicKeyRaw, privateKey };
+	return { userId, email: profile.email ?? email, publicKeyRaw, privateKey };
 }

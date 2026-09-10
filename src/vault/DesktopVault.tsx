@@ -1,0 +1,201 @@
+import { ChevronRight, Lock, Plus, Search, UserPlus } from "lucide-react";
+import { useState } from "react";
+import { getDomain, getInitials } from "../lib/format";
+import type { VaultViewProps } from "./types";
+
+export function DesktopVault({
+	session,
+	groups,
+	selectedGroup,
+	onSelectGroup,
+	onAddGroup,
+	onLock,
+	sections,
+	query,
+	onQueryChange,
+	selectedCredentialId,
+	onSelectCredential,
+	selectedCredential,
+	onCopy,
+	copyStatus,
+	onEdit,
+	onDelete,
+	onAddCredential,
+	onAddSubgroup,
+	onInvite,
+}: VaultViewProps) {
+	const [newSubgroupName, setNewSubgroupName] = useState("");
+
+	function handleAddSubgroup() {
+		const name = newSubgroupName.trim();
+		if (!name) return;
+		onAddSubgroup(name);
+		setNewSubgroupName("");
+	}
+
+	const credentialCount = sections.reduce((sum, s) => sum + s.rows.length, 0);
+	const domain = getDomain(selectedCredential?.url ?? null);
+
+	return (
+		<div className="vault-desktop">
+			<nav className="rail">
+				<img src="/brand/keynest-monogram-inverse.svg" alt="KeyNest" width={26} height={26} />
+				<div className="rail-divider" />
+				{groups.map((group) => (
+					<button
+						key={group.id}
+						type="button"
+						className={`rail-group${group.id === selectedGroup?.id ? " active" : ""}`}
+						title={group.name}
+						aria-label={group.name}
+						onClick={() => onSelectGroup(group.id)}
+					>
+						{getInitials(group.name)}
+					</button>
+				))}
+				<button type="button" className="rail-add" title="Crear grupo" onClick={onAddGroup}>
+					<Plus size={20} strokeWidth={1.5} />
+				</button>
+				<div className="rail-bottom">
+					<button type="button" className="rail-lock" title="Bloquear ahora" onClick={onLock}>
+						<Lock size={18} strokeWidth={1.5} />
+					</button>
+					<div className="rail-avatar" title={session.email}>
+						{getInitials(session.email)}
+					</div>
+				</div>
+			</nav>
+
+			<section className="list-panel">
+				<div className="list-header">
+					<div className="list-header-row">
+						<h2>{selectedGroup?.name ?? "—"}</h2>
+						<span className="mono-label">{credentialCount} CREDENCIALES</span>
+					</div>
+					<div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+						<div className="list-filter" style={{ flex: 1 }}>
+							<Search size={14} strokeWidth={1.5} color="var(--color-neutral-600)" />
+							<input
+								placeholder={`Filtrar en ${selectedGroup?.name ?? ""}…`}
+								value={query}
+								onChange={(e) => onQueryChange(e.target.value)}
+							/>
+						</div>
+						{selectedGroup?.role === "admin" ? (
+							<button type="button" className="btn btn-secondary btn-icon" title="Invitar" onClick={onInvite}>
+								<UserPlus size={16} strokeWidth={1.5} />
+							</button>
+						) : null}
+						<button type="button" className="btn btn-secondary btn-icon" title="Nueva credencial" onClick={onAddCredential}>
+							<Plus size={16} strokeWidth={1.5} />
+						</button>
+					</div>
+					<div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+						<input
+							className="input"
+							placeholder="nueva carpeta"
+							value={newSubgroupName}
+							onChange={(e) => setNewSubgroupName(e.target.value)}
+							onKeyDown={(e) => e.key === "Enter" && handleAddSubgroup()}
+							style={{ flex: 1, height: 28, fontSize: 12 }}
+						/>
+						<button type="button" className="btn btn-secondary" onClick={handleAddSubgroup} style={{ height: 28 }}>
+							+ Carpeta
+						</button>
+					</div>
+				</div>
+
+				<div className="list-scroll">
+					{sections.length === 0 ? (
+						<div className="empty-list">Sin credenciales todavía</div>
+					) : (
+						sections.map((section) => (
+							<div key={section.key}>
+								<div className="subgroup-header">
+									{section.label}
+									<span className="count">{section.rows.length}</span>
+								</div>
+								{section.rows.map((row) => (
+									<div
+										key={row.id}
+										className={`credential-row${row.id === selectedCredentialId ? " selected" : ""}`}
+										onClick={() => onSelectCredential(row.id)}
+									>
+										<div className="credential-initials">{getInitials(row.title)}</div>
+										<div className="credential-info">
+											<div className="credential-title">{row.title}</div>
+											<div className="credential-user">{row.username ?? ""}</div>
+										</div>
+										<ChevronRight size={14} strokeWidth={1.5} className="credential-chevron" />
+									</div>
+								))}
+							</div>
+						))
+					)}
+				</div>
+			</section>
+
+			{!selectedCredential ? (
+				<div className="detail-panel">
+					<div className="empty-detail">Selecciona una credencial</div>
+				</div>
+			) : (
+				<div className="detail-panel">
+					<div className="detail-header">
+						<div className="detail-initials">{getInitials(selectedCredential.title)}</div>
+						<div className="detail-title-block">
+							<h2>{selectedCredential.title}</h2>
+							<div className="detail-meta">
+								{[domain, selectedGroup?.name].filter(Boolean).join(" · ")}
+							</div>
+						</div>
+						<div className="detail-actions">
+							<button type="button" className="btn btn-ghost" onClick={() => onDelete(selectedCredential.id)}>
+								Borrar
+							</button>
+							<button type="button" className="btn btn-secondary" onClick={() => onEdit(selectedCredential)}>
+								Editar
+							</button>
+							<button type="button" className="btn btn-primary" onClick={() => onCopy(selectedCredential)}>
+								Copiar contraseña
+							</button>
+						</div>
+					</div>
+
+					<div className="detail-grid">
+						<div className="card blueprint field-card">
+							<i className="corner tl" />
+							<i className="corner tr" />
+							<i className="corner bl" />
+							<i className="corner br" />
+							<div className="field-label">Usuario</div>
+							<div className="field-value">{selectedCredential.username || "—"}</div>
+						</div>
+						<div className="card blueprint field-card">
+							<i className="corner tl" />
+							<i className="corner tr" />
+							<i className="corner bl" />
+							<i className="corner br" />
+							<div className="field-label">Contraseña · cifrada con la clave del grupo</div>
+							<div className="field-value masked">••••••••••••</div>
+							<div className="field-note">Nunca se muestra en pantalla</div>
+						</div>
+					</div>
+
+					{selectedCredential.notes ? (
+						<div className="card blueprint field-card">
+							<i className="corner tl" />
+							<i className="corner tr" />
+							<i className="corner bl" />
+							<i className="corner br" />
+							<div className="field-label">Notas</div>
+							<div className="notes-body">{selectedCredential.notes}</div>
+						</div>
+					) : null}
+
+					{copyStatus ? <span className="mono-label">{copyStatus}</span> : null}
+				</div>
+			)}
+		</div>
+	);
+}
