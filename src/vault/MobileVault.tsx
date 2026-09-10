@@ -1,4 +1,4 @@
-import { ArrowLeft, Copy, Eye, EyeOff, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronDown, Copy, Eye, EyeOff, Folder, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
@@ -28,6 +28,8 @@ export function MobileVault({
 	onDeleteSubgroup,
 	onOpenGroupSettings,
 	onLoadCredentialActivity,
+	collapsedSections,
+	onToggleSection,
 }: VaultViewProps) {
 	const [newSubgroupName, setNewSubgroupName] = useState("");
 	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
@@ -207,43 +209,53 @@ export function MobileVault({
 				{sections.length === 0 ? (
 					<div className="empty-list">Sin credenciales todavía</div>
 				) : (
-					sections.map((section) => (
-						<div key={section.key}>
-							<div className="subgroup-header">
-								{section.label}
-								<span className="count">{section.rows.length}</span>
-								{section.key !== NO_SUBGROUP ? (
-									<button
-										type="button"
-										className="btn btn-ghost"
-										style={{ padding: 2, marginLeft: 8 }}
-										onClick={() => onDeleteSubgroup(section.key, section.label)}
-									>
-										<Trash2 size={13} strokeWidth={1.5} />
-									</button>
-								) : null}
-							</div>
-							{section.rows.map((row) => (
-								<div key={row.id} className="mobile-row" onClick={() => onSelectCredential(row.id)}>
-									<div className="mobile-row-initials">{getInitials(row.title)}</div>
-									<div className="mobile-row-info">
-										<div className="mobile-row-title">{row.title}</div>
-										<div className="mobile-row-user">{row.username ?? ""}</div>
-									</div>
-									<button
-										type="button"
-										className="mobile-row-copy"
-										onClick={(e) => {
-											e.stopPropagation();
-											onCopy(row);
-										}}
-									>
-										<Copy size={16} strokeWidth={1.5} />
-									</button>
+					sections.map((section) => {
+						const collapsed = collapsedSections.has(section.key);
+						return (
+							<div key={section.key}>
+								<div className="subgroup-header" onClick={() => onToggleSection(section.key)}>
+									<ChevronDown size={13} strokeWidth={1.5} className={`chevron${collapsed ? " collapsed" : ""}`} />
+									<Folder size={13} strokeWidth={1.5} style={{ color: "var(--color-accent-600)", flex: "none" }} />
+									{section.label}
+									<span className="count">{section.rows.length}</span>
+									{section.key !== NO_SUBGROUP ? (
+										<button
+											type="button"
+											className="btn btn-ghost"
+											style={{ padding: 2, marginLeft: 8 }}
+											onClick={(e) => {
+												e.stopPropagation();
+												onDeleteSubgroup(section.key, section.label);
+											}}
+										>
+											<Trash2 size={13} strokeWidth={1.5} />
+										</button>
+									) : null}
 								</div>
-							))}
-						</div>
-					))
+								{collapsed
+									? null
+									: section.rows.map((row) => (
+											<div key={row.id} className="mobile-row" onClick={() => onSelectCredential(row.id)}>
+												<div className="mobile-row-initials">{getInitials(row.title)}</div>
+												<div className="mobile-row-info">
+													<div className="mobile-row-title">{row.title}</div>
+													<div className="mobile-row-user">{row.username ?? ""}</div>
+												</div>
+												<button
+													type="button"
+													className="mobile-row-copy"
+													onClick={(e) => {
+														e.stopPropagation();
+														onCopy(row);
+													}}
+												>
+													<Copy size={16} strokeWidth={1.5} />
+												</button>
+											</div>
+										))}
+							</div>
+						);
+					})
 				)}
 			</div>
 

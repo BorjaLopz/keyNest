@@ -35,4 +35,6 @@ export interface VaultViewProps {
 	onDeleteSubgroup: (subgroupId: string, name: string) => void;
 	onOpenGroupSettings: () => void;
 	onLoadCredentialActivity: (credentialId: string) => Promise<ActivityEntry[]>;
+	collapsedSections: Set<string>;
+	onToggleSection: (key: string) => void;
 }

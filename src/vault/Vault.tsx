@@ -49,6 +49,16 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 	>(null);
 	const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 	const [confirmDeleteSubgroup, setConfirmDeleteSubgroup] = useState<Subgroup | null>(null);
+	const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+
+	function handleToggleSection(key: string) {
+		setCollapsedSections((prev) => {
+			const next = new Set(prev);
+			if (next.has(key)) next.delete(key);
+			else next.add(key);
+			return next;
+		});
+	}
 
 	const selectedGroup = groups.find((g) => g.id === selectedGroupId) ?? null;
 	const groupKey = selectedGroupId ? (groupKeys.get(selectedGroupId) ?? null) : null;
@@ -204,6 +214,8 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 		onDeleteSubgroup: (id: string, name: string) => setConfirmDeleteSubgroup({ id, name }),
 		onOpenGroupSettings: () => setShowGroupSettings(true),
 		onLoadCredentialActivity: listActivityForCredential,
+		collapsedSections,
+		onToggleSection: handleToggleSection,
 	};
 
 	return (
