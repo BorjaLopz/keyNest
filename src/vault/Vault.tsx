@@ -15,12 +15,12 @@ import {
 import { createGroup, listGroups, unwrapMyGroupKey, type GroupSummary } from "../lib/groupService";
 import { createSubgroup, deleteSubgroup, listSubgroups, type Subgroup } from "../lib/subgroupService";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { CreateGroupDialog } from "./CreateGroupDialog";
 import { CredentialFormDialog } from "./CredentialFormDialog";
 import { DesktopVault } from "./DesktopVault";
 import { GroupSettingsDialog } from "./GroupSettingsDialog";
 import { MobileVault } from "./MobileVault";
-import { NO_SUBGROUP, type CredentialSection } from "./types";
+import { NameDialog } from "./NameDialog";
+import { NO_SUBGROUP, type FolderNode } from "./types";
 
 interface VaultProps {
 	session: UnlockedSession;
@@ -42,13 +42,14 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 
 	const [showCreateGroup, setShowCreateGroup] = useState(false);
 	const [showGroupSettings, setShowGroupSettings] = useState(false);
+	const [subfolderParent, setSubfolderParent] = useState<{ id: string; name: string } | null>(null);
 	const [credentialDialog, setCredentialDialog] = useState<
 		| { mode: "create" }
 		| { mode: "edit"; credentialId: string; row: CredentialRow; password: string }
 		| null
 	>(null);
 	const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-	const [confirmDeleteSubgroup, setConfirmDeleteSubgroup] = useState<Subgroup | null>(null);
+	const [confirmDeleteSubgroup, setConfirmDeleteSubgroup] = useState<{ id: string; name: string } | null>(null);
 	const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
 	function handleToggleSection(key: string) {
@@ -95,7 +96,7 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 		setGroups(await listGroups(session));
 	}
 
-	const sections = useMemo<CredentialSection[]>(() => {
+	const folderTree = useMemo<FolderNode[]>(() => {
 		const q = query.trim().toLowerCase();
 		const filtered = q
 			? credentials.filter((c) =>
@@ -103,22 +104,43 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 				)
 			: credentials;
 
-		const bySubgroup = new Map<string, CredentialRow[]>();
+		const credentialsBySubgroup = new Map<string, CredentialRow[]>();
 		for (const row of filtered) {
 			const key = row.subgroup_id ?? NO_SUBGROUP;
-			const bucket = bySubgroup.get(key) ?? [];
+			const bucket = credentialsBySubgroup.get(key) ?? [];
 			bucket.push(row);
-			bySubgroup.set(key, bucket);
+			credentialsBySubgroup.set(key, bucket);
 		}
 
-		const result: CredentialSection[] = [];
-		for (const subgroup of subgroups) {
-			const rows = bySubgroup.get(subgroup.id);
-			if (rows?.length) result.push({ key: subgroup.id, label: subgroup.name, rows });
+		const subgroupsByParent = new Map<string | null, Subgroup[]>();
+		for (const s of subgroups) {
+			const bucket = subgroupsByParent.get(s.parentId) ?? [];
+			bucket.push(s);
+			subgroupsByParent.set(s.parentId, bucket);
 		}
-		const noSubgroupRows = bySubgroup.get(NO_SUBGROUP);
-		if (noSubgroupRows?.length) result.push({ key: NO_SUBGROUP, label: "Sin carpeta", rows: noSubgroupRows });
-		return result;
+
+		function buildNode(subgroup: Subgroup, depth: number): FolderNode {
+			return {
+				id: subgroup.id,
+				name: subgroup.name,
+				depth,
+				credentials: credentialsBySubgroup.get(subgroup.id) ?? [],
+				children: (subgroupsByParent.get(subgroup.id) ?? []).map((child) => buildNode(child, depth + 1)),
+			};
+		}
+
+		function hasContent(node: FolderNode): boolean {
+			return node.credentials.length > 0 || node.children.some(hasContent);
+		}
+
+		let roots = (subgroupsByParent.get(null) ?? []).map((s) => buildNode(s, 0));
+		if (q) roots = roots.filter(hasContent);
+
+		const noFolderCredentials = credentialsBySubgroup.get(NO_SUBGROUP) ?? [];
+		if (noFolderCredentials.length > 0) {
+			roots.push({ id: NO_SUBGROUP, name: "Sin carpeta", depth: 0, credentials: noFolderCredentials, children: [] });
+		}
+		return roots;
 	}, [credentials, subgroups, query]);
 
 	const selectedCredential = credentials.find((c) => c.id === selectedCredentialId) ?? null;
@@ -148,6 +170,14 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 		await createSubgroup(selectedGroupId, name);
 		await logActivity(selectedGroupId, session.userId, "subgroup_created", name);
 		setSubgroups(await listSubgroups(selectedGroupId));
+	}
+
+	async function handleAddSubfolder(name: string) {
+		if (!selectedGroupId || !subfolderParent) return;
+		await createSubgroup(selectedGroupId, name, subfolderParent.id);
+		await logActivity(selectedGroupId, session.userId, "subgroup_created", name);
+		setSubgroups(await listSubgroups(selectedGroupId));
+		setSubfolderParent(null);
 	}
 
 	async function handleConfirmDeleteSubgroup() {
@@ -195,7 +225,7 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 		onAddGroup: () => setShowCreateGroup(true),
 		onLock,
 		onLogout,
-		sections,
+		folderTree,
 		query,
 		onQueryChange: setQuery,
 		selectedCredentialId,
@@ -211,6 +241,7 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 		onDelete: setConfirmDeleteId,
 		onAddCredential: () => setCredentialDialog({ mode: "create" }),
 		onAddSubgroup: handleAddSubgroup,
+		onAddSubfolder: (parentId: string, parentName: string) => setSubfolderParent({ id: parentId, name: parentName }),
 		onDeleteSubgroup: (id: string, name: string) => setConfirmDeleteSubgroup({ id, name }),
 		onOpenGroupSettings: () => setShowGroupSettings(true),
 		onLoadCredentialActivity: listActivityForCredential,
@@ -223,7 +254,16 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 			{isMobile ? <MobileVault {...sharedProps} /> : <DesktopVault {...sharedProps} />}
 
 			{showCreateGroup ? (
-				<CreateGroupDialog onCreate={handleCreateGroup} onClose={() => setShowCreateGroup(false)} />
+				<NameDialog title="Nuevo grupo" label="Nombre" onSubmit={handleCreateGroup} onClose={() => setShowCreateGroup(false)} />
+			) : null}
+
+			{subfolderParent ? (
+				<NameDialog
+					title={`Nueva subcarpeta dentro de "${subfolderParent.name}"`}
+					label="Nombre"
+					onSubmit={handleAddSubfolder}
+					onClose={() => setSubfolderParent(null)}
+				/>
 			) : null}
 
 			{showGroupSettings && selectedGroup ? (
@@ -272,7 +312,7 @@ export function Vault({ session, onLock, onLogout }: VaultProps) {
 			{confirmDeleteSubgroup ? (
 				<ConfirmDialog
 					title="Borrar carpeta"
-					message={`Se borra la carpeta "${confirmDeleteSubgroup.name}". Sus credenciales no se borran, quedan sin carpeta.`}
+					message={`Se borra "${confirmDeleteSubgroup.name}" y todas sus subcarpetas. Las credenciales no se borran, quedan sin carpeta.`}
 					confirmLabel="Borrar"
 					danger
 					onConfirm={handleConfirmDeleteSubgroup}

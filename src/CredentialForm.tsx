@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { CredentialFormValues } from "./lib/credentialService";
 import { estimatePasswordStrength, generateSecurePassword } from "./lib/passwordGenerator";
-import type { Subgroup } from "./lib/subgroupService";
+import { buildIndentedSubgroups, type Subgroup } from "./lib/subgroupService";
 
 interface CredentialFormProps {
 	subgroups: Subgroup[];
@@ -142,9 +142,9 @@ export function CredentialForm({
 					onChange={(e) => update("subgroupId", e.target.value || null)}
 				>
 					<option value="">Sin carpeta</option>
-					{subgroups.map((s) => (
+					{buildIndentedSubgroups(subgroups).map((s) => (
 						<option key={s.id} value={s.id}>
-							{s.name}
+							{s.label}
 						</option>
 					))}
 				</select>

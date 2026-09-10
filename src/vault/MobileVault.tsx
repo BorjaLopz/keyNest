@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
 import { formatRelativeTime, getDomain, getInitials } from "../lib/format";
-import { NO_SUBGROUP, type VaultViewProps } from "./types";
+import { NO_SUBGROUP, type FolderNode, type VaultViewProps } from "./types";
 
 export function MobileVault({
 	groups,
@@ -12,7 +12,7 @@ export function MobileVault({
 	onAddGroup,
 	onLock,
 	onLogout,
-	sections,
+	folderTree,
 	query,
 	onQueryChange,
 	selectedCredentialId,
@@ -25,6 +25,7 @@ export function MobileVault({
 	onDelete,
 	onAddCredential,
 	onAddSubgroup,
+	onAddSubfolder,
 	onDeleteSubgroup,
 	onOpenGroupSettings,
 	onLoadCredentialActivity,
@@ -34,7 +35,12 @@ export function MobileVault({
 	const [newSubgroupName, setNewSubgroupName] = useState("");
 	const [revealedPassword, setRevealedPassword] = useState<string | null>(null);
 	const [activity, setActivity] = useState<ActivityEntry[]>([]);
-	const credentialCount = sections.reduce((sum, s) => sum + s.rows.length, 0);
+
+	function countNode(node: FolderNode): number {
+		return node.credentials.length + node.children.reduce((sum, c) => sum + countNode(c), 0);
+	}
+
+	const credentialCount = folderTree.reduce((sum, node) => sum + countNode(node), 0);
 
 	useEffect(() => {
 		setRevealedPassword(null);
@@ -149,6 +155,76 @@ export function MobileVault({
 		setNewSubgroupName("");
 	}
 
+	function renderFolder(node: FolderNode) {
+		const collapsed = collapsedSections.has(node.id);
+		const indent = 16 + node.depth * 16;
+		return (
+			<div key={node.id}>
+				<div className="subgroup-header" style={{ paddingLeft: indent }} onClick={() => onToggleSection(node.id)}>
+					<ChevronDown size={13} strokeWidth={1.5} className={`chevron${collapsed ? " collapsed" : ""}`} />
+					<Folder size={13} strokeWidth={1.5} style={{ color: "var(--color-accent-600)", flex: "none" }} />
+					{node.name}
+					<span className="count">{countNode(node)}</span>
+					{node.id !== NO_SUBGROUP ? (
+						<>
+							<button
+								type="button"
+								className="btn btn-ghost"
+								style={{ padding: 2, marginLeft: 8 }}
+								onClick={(e) => {
+									e.stopPropagation();
+									onAddSubfolder(node.id, node.name);
+								}}
+							>
+								<Plus size={13} strokeWidth={1.5} />
+							</button>
+							<button
+								type="button"
+								className="btn btn-ghost"
+								style={{ padding: 2 }}
+								onClick={(e) => {
+									e.stopPropagation();
+									onDeleteSubgroup(node.id, node.name);
+								}}
+							>
+								<Trash2 size={13} strokeWidth={1.5} />
+							</button>
+						</>
+					) : null}
+				</div>
+				{collapsed ? null : (
+					<>
+						{node.credentials.map((row) => (
+							<div
+								key={row.id}
+								className="mobile-row"
+								style={{ paddingLeft: indent }}
+								onClick={() => onSelectCredential(row.id)}
+							>
+								<div className="mobile-row-initials">{getInitials(row.title)}</div>
+								<div className="mobile-row-info">
+									<div className="mobile-row-title">{row.title}</div>
+									<div className="mobile-row-user">{row.username ?? ""}</div>
+								</div>
+								<button
+									type="button"
+									className="mobile-row-copy"
+									onClick={(e) => {
+										e.stopPropagation();
+										onCopy(row);
+									}}
+								>
+									<Copy size={16} strokeWidth={1.5} />
+								</button>
+							</div>
+						))}
+						{node.children.map(renderFolder)}
+					</>
+				)}
+			</div>
+		);
+	}
+
 	return (
 		<div className="vault-mobile">
 			<div className="mobile-topbar">
@@ -206,56 +282,10 @@ export function MobileVault({
 			</div>
 
 			<div className="mobile-list">
-				{sections.length === 0 ? (
+				{folderTree.length === 0 ? (
 					<div className="empty-list">Sin credenciales todavía</div>
 				) : (
-					sections.map((section) => {
-						const collapsed = collapsedSections.has(section.key);
-						return (
-							<div key={section.key}>
-								<div className="subgroup-header" onClick={() => onToggleSection(section.key)}>
-									<ChevronDown size={13} strokeWidth={1.5} className={`chevron${collapsed ? " collapsed" : ""}`} />
-									<Folder size={13} strokeWidth={1.5} style={{ color: "var(--color-accent-600)", flex: "none" }} />
-									{section.label}
-									<span className="count">{section.rows.length}</span>
-									{section.key !== NO_SUBGROUP ? (
-										<button
-											type="button"
-											className="btn btn-ghost"
-											style={{ padding: 2, marginLeft: 8 }}
-											onClick={(e) => {
-												e.stopPropagation();
-												onDeleteSubgroup(section.key, section.label);
-											}}
-										>
-											<Trash2 size={13} strokeWidth={1.5} />
-										</button>
-									) : null}
-								</div>
-								{collapsed
-									? null
-									: section.rows.map((row) => (
-											<div key={row.id} className="mobile-row" onClick={() => onSelectCredential(row.id)}>
-												<div className="mobile-row-initials">{getInitials(row.title)}</div>
-												<div className="mobile-row-info">
-													<div className="mobile-row-title">{row.title}</div>
-													<div className="mobile-row-user">{row.username ?? ""}</div>
-												</div>
-												<button
-													type="button"
-													className="mobile-row-copy"
-													onClick={(e) => {
-														e.stopPropagation();
-														onCopy(row);
-													}}
-												>
-													<Copy size={16} strokeWidth={1.5} />
-												</button>
-											</div>
-										))}
-							</div>
-						);
-					})
+					folderTree.map(renderFolder)
 				)}
 			</div>
 

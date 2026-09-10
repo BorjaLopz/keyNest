@@ -170,6 +170,7 @@ create policy "group_members_delete_admin"
 create table public.subgroups (
 	id uuid primary key default gen_random_uuid(),
 	group_id uuid not null references public.groups (id) on delete cascade,
+	parent_id uuid references public.subgroups (id) on delete cascade,
 	name text not null,
 	created_at timestamptz not null default now()
 );

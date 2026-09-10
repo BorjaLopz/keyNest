@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
 import { formatRelativeTime, getDomain, getInitials } from "../lib/format";
-import { NO_SUBGROUP, type VaultViewProps } from "./types";
+import { NO_SUBGROUP, type FolderNode, type VaultViewProps } from "./types";
 
 export function DesktopVault({
 	session,
@@ -13,7 +13,7 @@ export function DesktopVault({
 	onAddGroup,
 	onLock,
 	onLogout,
-	sections,
+	folderTree,
 	query,
 	onQueryChange,
 	selectedCredentialId,
@@ -26,6 +26,7 @@ export function DesktopVault({
 	onDelete,
 	onAddCredential,
 	onAddSubgroup,
+	onAddSubfolder,
 	onDeleteSubgroup,
 	onOpenGroupSettings,
 	onLoadCredentialActivity,
@@ -64,7 +65,74 @@ export function DesktopVault({
 		setNewSubgroupName("");
 	}
 
-	const credentialCount = sections.reduce((sum, s) => sum + s.rows.length, 0);
+	function countNode(node: FolderNode): number {
+		return node.credentials.length + node.children.reduce((sum, c) => sum + countNode(c), 0);
+	}
+
+	function renderFolder(node: FolderNode) {
+		const collapsed = collapsedSections.has(node.id);
+		const indent = 16 + node.depth * 16;
+		return (
+			<div key={node.id}>
+				<div className="subgroup-header" style={{ paddingLeft: indent }} onClick={() => onToggleSection(node.id)}>
+					<ChevronDown size={12} strokeWidth={1.5} className={`chevron${collapsed ? " collapsed" : ""}`} />
+					<Folder size={12} strokeWidth={1.5} style={{ color: "var(--color-accent-600)", flex: "none" }} />
+					{node.name}
+					<span className="count">{countNode(node)}</span>
+					{node.id !== NO_SUBGROUP ? (
+						<>
+							<button
+								type="button"
+								className="btn btn-ghost"
+								style={{ padding: 2, marginLeft: 8 }}
+								title="Nueva subcarpeta"
+								onClick={(e) => {
+									e.stopPropagation();
+									onAddSubfolder(node.id, node.name);
+								}}
+							>
+								<Plus size={12} strokeWidth={1.5} />
+							</button>
+							<button
+								type="button"
+								className="btn btn-ghost"
+								style={{ padding: 2 }}
+								title="Borrar carpeta"
+								onClick={(e) => {
+									e.stopPropagation();
+									onDeleteSubgroup(node.id, node.name);
+								}}
+							>
+								<Trash2 size={12} strokeWidth={1.5} />
+							</button>
+						</>
+					) : null}
+				</div>
+				{collapsed ? null : (
+					<>
+						{node.credentials.map((row) => (
+							<div
+								key={row.id}
+								className={`credential-row${row.id === selectedCredentialId ? " selected" : ""}`}
+								style={{ paddingLeft: indent }}
+								onClick={() => onSelectCredential(row.id)}
+							>
+								<div className="credential-initials">{getInitials(row.title)}</div>
+								<div className="credential-info">
+									<div className="credential-title">{row.title}</div>
+									<div className="credential-user">{row.username ?? ""}</div>
+								</div>
+								<ChevronRight size={14} strokeWidth={1.5} className="credential-chevron" />
+							</div>
+						))}
+						{node.children.map(renderFolder)}
+					</>
+				)}
+			</div>
+		);
+	}
+
+	const credentialCount = folderTree.reduce((sum, node) => sum + countNode(node), 0);
 	const domain = getDomain(selectedCredential?.url ?? null);
 
 	return (
@@ -167,52 +235,10 @@ export function DesktopVault({
 				</div>
 
 				<div className="list-scroll">
-					{sections.length === 0 ? (
+					{folderTree.length === 0 ? (
 						<div className="empty-list">Sin credenciales todavía</div>
 					) : (
-						sections.map((section) => {
-							const collapsed = collapsedSections.has(section.key);
-							return (
-								<div key={section.key}>
-									<div className="subgroup-header" onClick={() => onToggleSection(section.key)}>
-										<ChevronDown size={12} strokeWidth={1.5} className={`chevron${collapsed ? " collapsed" : ""}`} />
-										<Folder size={12} strokeWidth={1.5} style={{ color: "var(--color-accent-600)", flex: "none" }} />
-										{section.label}
-										<span className="count">{section.rows.length}</span>
-										{section.key !== NO_SUBGROUP ? (
-											<button
-												type="button"
-												className="btn btn-ghost"
-												style={{ padding: 2, marginLeft: 8 }}
-												title="Borrar carpeta"
-												onClick={(e) => {
-													e.stopPropagation();
-													onDeleteSubgroup(section.key, section.label);
-												}}
-											>
-												<Trash2 size={12} strokeWidth={1.5} />
-											</button>
-										) : null}
-									</div>
-									{collapsed
-										? null
-										: section.rows.map((row) => (
-												<div
-													key={row.id}
-													className={`credential-row${row.id === selectedCredentialId ? " selected" : ""}`}
-													onClick={() => onSelectCredential(row.id)}
-												>
-													<div className="credential-initials">{getInitials(row.title)}</div>
-													<div className="credential-info">
-														<div className="credential-title">{row.title}</div>
-														<div className="credential-user">{row.username ?? ""}</div>
-													</div>
-													<ChevronRight size={14} strokeWidth={1.5} className="credential-chevron" />
-												</div>
-											))}
-								</div>
-							);
-						})
+						folderTree.map(renderFolder)
 					)}
 				</div>
 			</section>

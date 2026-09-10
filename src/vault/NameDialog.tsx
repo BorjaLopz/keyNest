@@ -1,11 +1,14 @@
 import { useState } from "react";
 
-interface CreateGroupDialogProps {
-	onCreate: (name: string) => Promise<void>;
+interface NameDialogProps {
+	title: string;
+	label: string;
+	submitLabel?: string;
+	onSubmit: (name: string) => Promise<void>;
 	onClose: () => void;
 }
 
-export function CreateGroupDialog({ onCreate, onClose }: CreateGroupDialogProps) {
+export function NameDialog({ title, label, submitLabel = "Crear", onSubmit, onClose }: NameDialogProps) {
 	const [name, setName] = useState("");
 	const [loading, setLoading] = useState(false);
 
@@ -14,7 +17,7 @@ export function CreateGroupDialog({ onCreate, onClose }: CreateGroupDialogProps)
 		if (!trimmed) return;
 		setLoading(true);
 		try {
-			await onCreate(trimmed);
+			await onSubmit(trimmed);
 		} finally {
 			setLoading(false);
 		}
@@ -23,9 +26,9 @@ export function CreateGroupDialog({ onCreate, onClose }: CreateGroupDialogProps)
 	return (
 		<div className="dialog-backdrop" onClick={onClose}>
 			<div className="dialog" onClick={(e) => e.stopPropagation()}>
-				<div className="dialog-title">Nuevo grupo</div>
+				<div className="dialog-title">{title}</div>
 				<div className="field">
-					<label>Nombre</label>
+					<label>{label}</label>
 					<input
 						className="input"
 						autoFocus
@@ -39,7 +42,7 @@ export function CreateGroupDialog({ onCreate, onClose }: CreateGroupDialogProps)
 						Cancelar
 					</button>
 					<button type="button" className="btn btn-primary" disabled={loading} onClick={handleSubmit}>
-						Crear
+						{submitLabel}
 					</button>
 				</div>
 			</div>

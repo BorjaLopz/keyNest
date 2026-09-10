@@ -5,10 +5,12 @@ import type { GroupSummary } from "../lib/groupService";
 
 export const NO_SUBGROUP = "__none__";
 
-export interface CredentialSection {
-	key: string;
-	label: string;
-	rows: CredentialRow[];
+export interface FolderNode {
+	id: string;
+	name: string;
+	depth: number;
+	credentials: CredentialRow[];
+	children: FolderNode[];
 }
 
 export interface VaultViewProps {
@@ -19,7 +21,7 @@ export interface VaultViewProps {
 	onAddGroup: () => void;
 	onLock: () => void;
 	onLogout: () => void;
-	sections: CredentialSection[];
+	folderTree: FolderNode[];
 	query: string;
 	onQueryChange: (query: string) => void;
 	selectedCredentialId: string | null;
@@ -32,6 +34,7 @@ export interface VaultViewProps {
 	onDelete: (id: string) => void;
 	onAddCredential: () => void;
 	onAddSubgroup: (name: string) => void;
+	onAddSubfolder: (parentId: string, parentName: string) => void;
 	onDeleteSubgroup: (subgroupId: string, name: string) => void;
 	onOpenGroupSettings: () => void;
 	onLoadCredentialActivity: (credentialId: string) => Promise<ActivityEntry[]>;
