@@ -306,7 +306,7 @@ export function DesktopVault({
 							<i className="corner tr" />
 							<i className="corner bl" />
 							<i className="corner br" />
-							<div className="field-label">Contraseña · cifrada con la clave del grupo</div>
+							<div className="field-label">Contraseña</div>
 							<div className="field-value-row">
 								<div className={`field-value${revealedPassword === null ? " masked" : ""}`}>
 									{revealedPassword ?? "••••••••••••"}
@@ -315,7 +315,6 @@ export function DesktopVault({
 									{revealedPassword === null ? <Eye size={14} strokeWidth={1.5} /> : <EyeOff size={14} strokeWidth={1.5} />}
 								</button>
 							</div>
-							{revealedPassword === null ? <div className="field-note">Nunca se muestra sin pedirlo</div> : null}
 						</div>
 					</div>
 

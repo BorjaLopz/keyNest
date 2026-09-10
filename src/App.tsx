@@ -76,8 +76,8 @@ export function App() {
 					<i className="corner br" />
 
 					<div className="auth-brand">
-						<img src="/brand/keynest-monogram.svg" alt="" height={30} />
-						<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={39} />
+						<img src="/brand/keynest-monogram-inverse.svg" alt="" height={30} />
+						<img src="/brand/keynest-wordmark-inverse.svg" alt="KeyNest" height={39} />
 					</div>
 
 					<div className="field">
@@ -96,7 +96,7 @@ export function App() {
 						/>
 					</div>
 
-					{error ? <span style={{ color: "#c1443c", fontSize: 12.5 }}>{error}</span> : null}
+					{error ? <span style={{ color: "#e8918a", fontSize: 12.5 }}>{error}</span> : null}
 
 					<button type="button" className="btn btn-primary btn-block" disabled={loading} onClick={handleUnlock}>
 						Desbloquear
@@ -118,8 +118,8 @@ export function App() {
 				<i className="corner br" />
 
 				<div className="auth-brand">
-					<img src="/brand/keynest-monogram.svg" alt="" height={30} />
-					<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={39} />
+					<img src="/brand/keynest-monogram-inverse.svg" alt="" height={30} />
+					<img src="/brand/keynest-wordmark-inverse.svg" alt="KeyNest" height={39} />
 				</div>
 
 				<div className="field">
@@ -143,7 +143,7 @@ export function App() {
 					/>
 				</div>
 
-				{error ? <span style={{ color: "#c1443c", fontSize: 12.5 }}>{error}</span> : null}
+				{error ? <span style={{ color: "#e8918a", fontSize: 12.5 }}>{error}</span> : null}
 
 				<button type="button" className="btn btn-primary btn-block" disabled={loading} onClick={() => handleSubmit("register")}>
 					Crear cuenta

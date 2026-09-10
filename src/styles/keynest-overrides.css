@@ -843,6 +843,8 @@ button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	background: var(--steel);
+	color: #f2f2f3;
 }
 
 .auth-card {
@@ -851,6 +853,48 @@ button {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+}
+
+/* Blueprint asume tinta oscura sobre papel; reajusta bordes/texto para
+   verse sobre el campo acero en vez de tocar la clase global. */
+.auth-card.blueprint {
+	border-color: rgba(242, 242, 243, 0.25);
+}
+
+.auth-card.blueprint > .corner {
+	color: rgba(242, 242, 243, 0.45);
+}
+
+.auth-card .field > label {
+	color: rgba(242, 242, 243, 0.65);
+}
+
+.auth-card .input {
+	background: rgba(242, 242, 243, 0.08);
+	border-color: rgba(242, 242, 243, 0.25);
+	color: #f2f2f3;
+	caret-color: var(--color-accent-300);
+}
+
+.auth-card .input:hover {
+	border-color: rgba(242, 242, 243, 0.45);
+}
+
+.auth-card .input:focus-visible {
+	border-color: var(--color-accent-400);
+}
+
+.auth-card .btn-secondary {
+	border-color: rgba(242, 242, 243, 0.35);
+	color: #f2f2f3;
+}
+
+.auth-card .btn-secondary:hover {
+	background: rgba(242, 242, 243, 0.08);
+}
+
+.auth-card .btn-ghost {
+	color: var(--color-accent-300);
 }
 
 .auth-brand {
