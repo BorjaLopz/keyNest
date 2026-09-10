@@ -63,7 +63,7 @@ export function DesktopVault({
 	}
 
 	function renderFolder(node: FolderNode) {
-		const collapsed = collapsedSections.has(node.id);
+		const collapsed = !query.trim() && collapsedSections.has(node.id);
 		const indent = 16 + node.depth * 16;
 		return (
 			<div key={node.id}>
