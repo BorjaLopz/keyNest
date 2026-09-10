@@ -76,8 +76,8 @@ export function App() {
 					<i className="corner br" />
 
 					<div className="auth-brand">
-						<img src="/brand/keynest-monogram-inverse.svg" alt="" height={30} />
-						<img src="/brand/keynest-wordmark-inverse.svg" alt="KeyNest" height={39} />
+						<img src="/brand/keynest-wordmark-inverse.svg" alt="KeyNest" height={34} />
+						<div className="rail-tagline">Gestor de contraseñas</div>
 					</div>
 
 					<div className="field">
@@ -118,8 +118,8 @@ export function App() {
 				<i className="corner br" />
 
 				<div className="auth-brand">
-					<img src="/brand/keynest-monogram-inverse.svg" alt="" height={30} />
-					<img src="/brand/keynest-wordmark-inverse.svg" alt="KeyNest" height={39} />
+					<img src="/brand/keynest-wordmark-inverse.svg" alt="KeyNest" height={34} />
+					<div className="rail-tagline">Gestor de contraseñas</div>
 				</div>
 
 				<div className="field">

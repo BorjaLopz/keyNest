@@ -899,9 +899,14 @@ button {
 
 .auth-brand {
 	display: flex;
-	align-items: flex-start;
-	gap: 10px;
-	margin-bottom: 8px;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 12px;
+}
+
+.auth-brand .rail-tagline {
+	margin-top: 0;
 }
 
 .auth-card .field {
