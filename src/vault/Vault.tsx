@@ -25,9 +25,10 @@ import { NO_SUBGROUP, type CredentialSection } from "./types";
 interface VaultProps {
 	session: UnlockedSession;
 	onLock: () => void;
+	onLogout: () => void;
 }
 
-export function Vault({ session, onLock }: VaultProps) {
+export function Vault({ session, onLock, onLogout }: VaultProps) {
 	const isMobile = useIsMobile();
 
 	const [groups, setGroups] = useState<GroupSummary[]>([]);
@@ -183,6 +184,7 @@ export function Vault({ session, onLock }: VaultProps) {
 		onSelectGroup: setSelectedGroupId,
 		onAddGroup: () => setShowCreateGroup(true),
 		onLock,
+		onLogout,
 		sections,
 		query,
 		onQueryChange: setQuery,

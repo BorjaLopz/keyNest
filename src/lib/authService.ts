@@ -66,3 +66,11 @@ export async function loginUser(email: string, masterPassword: string): Promise<
 
 	return { userId, email: profile.email ?? email, publicKeyRaw, privateKey };
 }
+
+// "Bloquear" != "cerrar sesion": bloquear solo borra las claves en memoria
+// (App.tsx), la sesion de Supabase Auth sigue activa. Esto es lo que
+// realmente cierra la sesion contra el servidor.
+export async function logoutUser(): Promise<void> {
+	const { error } = await supabase.auth.signOut();
+	if (error) throw error;
+}

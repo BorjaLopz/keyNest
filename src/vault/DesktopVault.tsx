@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Eye, EyeOff, Lock, Plus, Search, Settings, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
@@ -12,6 +12,7 @@ export function DesktopVault({
 	onSelectGroup,
 	onAddGroup,
 	onLock,
+	onLogout,
 	sections,
 	query,
 	onQueryChange,
@@ -116,6 +117,9 @@ export function DesktopVault({
 					</button>
 					<button type="button" className="rail-lock" title="Bloquear ahora" onClick={onLock}>
 						<Lock size={18} strokeWidth={1.5} />
+					</button>
+					<button type="button" className="rail-lock" title="Cerrar sesión" onClick={onLogout}>
+						<LogOut size={16} strokeWidth={1.5} />
 					</button>
 					<div className="rail-avatar" title={session.email}>
 						{getInitials(session.email)}

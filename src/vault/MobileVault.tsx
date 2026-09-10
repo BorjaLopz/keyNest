@@ -1,4 +1,4 @@
-import { ArrowLeft, Copy, Eye, EyeOff, Lock, Plus, Search, Settings, Trash2 } from "lucide-react";
+import { ArrowLeft, Copy, Eye, EyeOff, Lock, LogOut, Plus, Search, Settings, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { ActivityEntry } from "../lib/activityService";
 import { describeActivity } from "../lib/activityService";
@@ -11,6 +11,7 @@ export function MobileVault({
 	onSelectGroup,
 	onAddGroup,
 	onLock,
+	onLogout,
 	sections,
 	query,
 	onQueryChange,
@@ -154,6 +155,9 @@ export function MobileVault({
 					<img src="/brand/keynest-wordmark.svg" alt="KeyNest" height={20} />
 				</div>
 				<div className="mobile-topbar-right">
+					<button type="button" className="mobile-lock-btn" onClick={onLogout} title="Cerrar sesión">
+						<LogOut size={13} strokeWidth={1.5} />
+					</button>
 					<button type="button" className="mobile-lock-btn" onClick={onLock}>
 						<Lock size={13} strokeWidth={1.5} /> Bloquear
 					</button>

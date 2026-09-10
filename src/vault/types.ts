@@ -18,6 +18,7 @@ export interface VaultViewProps {
 	onSelectGroup: (id: string) => void;
 	onAddGroup: () => void;
 	onLock: () => void;
+	onLogout: () => void;
 	sections: CredentialSection[];
 	query: string;
 	onQueryChange: (query: string) => void;
