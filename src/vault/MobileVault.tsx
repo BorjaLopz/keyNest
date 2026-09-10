@@ -103,7 +103,6 @@ export function MobileVault({
 								{revealedPassword === null ? <Eye size={16} strokeWidth={1.5} /> : <EyeOff size={16} strokeWidth={1.5} />}
 							</button>
 						</div>
-						<div className="field-note">Copiar limpia el portapapeles en 20 s.</div>
 					</div>
 					{selectedCredential.notes ? (
 						<div className="card blueprint field-card">
