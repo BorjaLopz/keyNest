@@ -1,0 +1,27 @@
+name: Keep Supabase Alive
+
+# Supabase free tier pausa el proyecto tras ~7 días sin actividad y no se
+# reactiva solo: hay que restaurarlo a mano desde el dashboard. Esto hace una
+# lectura real (mínima) cada pocos días para que nunca llegue a pausarse.
+# La publishable key ya va en el bundle del frontend, así que no es un secreto;
+# con anon y RLS la consulta devuelve [] pero toca igualmente la base de datos.
+on:
+  schedule:
+    - cron: "0 8 * * 1,4" # lunes y jueves a las 08:00 UTC
+  workflow_dispatch: {} # permite lanzarlo a mano desde la pestaña Actions
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consulta mínima a Supabase (anon key, protegida por RLS)
+        run: |
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://rfbkchpxyijrrpizjqle.supabase.co/rest/v1/groups?select=id&limit=1" \
+            -H "apikey: sb_publishable_R_7275iUulLXI8YQ515oCw_C0VLX_Yx" \
+            -H "Authorization: Bearer sb_publishable_R_7275iUulLXI8YQ515oCw_C0VLX_Yx")
+          echo "Respuesta de Supabase: $http_code"
+          if [ "$http_code" -ge 400 ] || [ "$http_code" = "000" ]; then
+            echo "Supabase respondió con error $http_code — revisa si el proyecto sigue activo"
+            exit 1
+          fi
