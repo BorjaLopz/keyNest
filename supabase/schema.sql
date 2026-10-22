@@ -286,3 +286,20 @@ grant select, insert, update, delete on public.group_members to authenticated;
 grant select, insert, update, delete on public.subgroups to authenticated;
 grant select, insert, update, delete on public.credentials to authenticated;
 grant select, insert on public.group_activity to authenticated;
+
+-- ============================================================
+-- Keep-alive. Supabase free pausa el proyecto tras ~7 dias sin actividad;
+-- un cron externo (GitHub Actions / cron-job.org) llama a esta funcion con
+-- la publishable key. Es la unica cosa expuesta a "anon" y no lee ninguna
+-- tabla: solo hace que la peticion llegue a Postgres y devuelva 200.
+-- Llamada: GET /rest/v1/rpc/keep_alive?apikey=<publishable key>
+-- ============================================================
+create function public.keep_alive()
+returns integer
+language sql
+stable
+as $$
+	select 1;
+$$;
+
+grant execute on function public.keep_alive() to anon;
